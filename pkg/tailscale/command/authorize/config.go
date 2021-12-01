@@ -12,24 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cloud
+package authorize
 
 import (
-	"net/http"
+	"github.com/dhermes/tailsk8s/pkg/tailscale/cloud"
 )
 
-// Config provides helpers that are required to interact with the Tailscale
-// Cloud API.
+// Config provides the core set of (CLI) inputs needed to authorize a new
+// device in a Tailnet.
 type Config struct {
-	Addr    string
-	Tailnet string
-	APIKey  string
+	APIConfig cloud.Config
+	Hostname  string
 }
 
 // NewConfig returns a new `Config` with all relevant defaults provided and
 // options for overriding.
 func NewConfig(opts ...Option) (Config, error) {
-	c := Config{Addr: "https://api.tailscale.com"}
+	ac, err := cloud.NewConfig()
+	if err != nil {
+		return Config{}, err
+	}
+
+	c := Config{APIConfig: ac}
 	for _, opt := range opts {
 		err := opt(&c)
 		if err != nil {
@@ -37,12 +41,4 @@ func NewConfig(opts ...Option) (Config, error) {
 		}
 	}
 	return c, nil
-}
-
-// HTTPClient returns an HTTP client associated with this config.
-//
-// NOTE: For now this is just a stub wrapper around `http.DefaultClient` but
-//       it's provided here to make the code easier to test at a later date.
-func (c Config) HTTPClient() *http.Client {
-	return http.DefaultClient
 }

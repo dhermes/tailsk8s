@@ -22,6 +22,20 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/dhermes/tailsk8s/pkg/cli"
+)
+
+const (
+	// debugCurlAuthorizeDevice is a template to print (in debug mode) the
+	// equivalent curl command to the outgoing request. The POST body is
+	// not expected to be `shlex` quoted by the template user, but it should be.
+	debugCurlAuthorizeDevice = `Calling "authorize device" API route:
+> curl \
+>   --user "...redacted API Key...:" \
+>   --data-binary '%s'
+>   %s
+`
 )
 
 // Device represents a device in a Tailnet; the set of fields here is not
@@ -41,7 +55,8 @@ type Device struct {
 // This is only needed in Tailnets where device authorization is required.
 func AuthorizeDevice(ctx context.Context, c Config, adr AuthorizeDeviceRequest) (*Empty, error) {
 	url := fmt.Sprintf(
-		"https://api.tailscale.com/api/v2/device/%s/authorized",
+		"%s/api/v2/device/%s/authorized",
+		c.Addr,
 		url.PathEscape(adr.ID),
 	)
 	asJSON, err := json.Marshal(adr)
@@ -49,7 +64,8 @@ func AuthorizeDevice(ctx context.Context, c Config, adr AuthorizeDeviceRequest) 
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(asJSON))
+	cli.DebugPrintf(ctx, debugCurlAuthorizeDevice, string(asJSON), url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(asJSON))
 	if err != nil {
 		return nil, err
 	}

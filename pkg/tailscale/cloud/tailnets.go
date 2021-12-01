@@ -21,6 +21,16 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/dhermes/tailsk8s/pkg/cli"
+)
+
+const (
+	debugCurlGetDevices = `Calling "get devices in Tailnet" API route:
+> curl \
+>   --user "...redacted API Key...:" \
+>   %s
+`
 )
 
 // GetDevices lists the devices for a Tailnet.
@@ -30,7 +40,8 @@ func GetDevices(ctx context.Context, c Config, _ Empty) (*GetDevicesResponse, er
 		c.Addr,
 		url.PathEscape(c.Tailnet),
 	)
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	cli.DebugPrintf(ctx, debugCurlGetDevices, url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
