@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package advertise uses the **local** (i.e. `tailscaled`) Tailscale API to
-// advertise routes to the Tailnet and then uses the Tailscale Cloud API to
-// accept these newly advertised routes.
+// Package advertise uses local and cloud Tailscale APIs to advertise routes to the Tailnet.
+//
+// It uses the local API to advertise a route to peers and make sure peer
+// routes are accepted locally. Then it uses the Tailscale Cloud API to accept
+// the newly advertised route.
 //
 // This is provided in a way to optimize the testable surface area (even for
 // untested parts of the code) without having any usage of `os.Exit()`.

@@ -15,6 +15,7 @@
 //go:build tools
 // +build tools
 
-// Package tools imports tools used for development so they can be tracked
-// in `go.mod`, `go.sum` and `vendor/`.
+// Package tools imports tools used for development.
+//
+// This way, the packages can be tracked in `go.mod`, `go.sum` and `vendor/`.
 package tools

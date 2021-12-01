@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cloud provides helpers for using the Tailscale "cloud API", i.e.
-// the API provided by the control plane. When using the Tailscale-provided
-// control plane `controlplane.tailscale.com`, the API is expected to be
-// provided by `api.tailscale.com`.
+// Package cloud provides helpers for using the Tailscale "cloud API".
 //
-// This is in contrast to the local API, which is provided by the `tailscaled`
-// socket.
+// Here the "cloud API" refers to the API provided by the control plane. When
+// using the Tailscale-provided control plane `controlplane.tailscale.com`,
+// the cloud API is expected to be provided by `api.tailscale.com`.
+//
+// The cloud API is in contrast to the local API, which is provided by the
+// `tailscaled` socket.
 //
 // See: https://github.com/tailscale/tailscale/blob/v1.18.1/api.md
 package cloud

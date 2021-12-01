@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package remix provides helpers that we **wish** were in the Tailscale
-// "cloud API". The functions provided here remix the actual base API
-// requests in `github.com/dhermes/tailsk8s/pkg/tailscale/cloud`.
+// Package remix provides helpers that we **wish** were in the Tailscale "cloud API".
+//
+// The functions provided here remix the actual base API requests in
+// `github.com/dhermes/tailsk8s/pkg/tailscale/cloud`.
 package remix

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package tailsk8s is the root package; it contains no code but is here
-// for documentation purposes.
+// Package tailsk8s is the root package.
+//
+// It contains no code but is here for documentation purposes.
 package tailsk8s

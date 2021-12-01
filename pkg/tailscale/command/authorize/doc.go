@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authorize combines methods in `pkg/tailscale/cloud` to authorize a
-// new machine in a Tailnet from the command line.
+// Package authorize uses the cloud API to authorize a new machine in a Tailnet.
+//
+// This package glues together functions in `pkg/tailscale/cloud` to authorize
+// a new machine in a Tailnet without having to visit the web UI.
 //
 // This is provided in a way to optimize the testable surface area (even for
 // untested parts of the code) without having any usage of `os.Exit()`.

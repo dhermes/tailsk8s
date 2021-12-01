@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package local provides helpers for using the Tailscale local API, i.e.
-// the API provided by the locally running `tailscaled`. This API is provided
-// over a Unix Domain Socket typically present at
+// Package local provides helpers for using the Tailscale local API.
+//
+// The "local API" is the the API provided by the locally running `tailscaled`.
+// This API is provided over a Unix Domain Socket typically present at
 // `/var/run/tailscale/tailscaled.sock`.
 package local

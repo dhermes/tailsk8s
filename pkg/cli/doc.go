@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cli provides helpers for making CLI scripts and making (testable)
-// code that can be used in such scripts.
+// Package cli provides helpers for making CLI scripts.
+//
+// The goal of this package is to aid in writing testable code that can be
+// used within CLI scripts.
 package cli
