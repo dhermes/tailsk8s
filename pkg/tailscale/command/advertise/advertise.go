@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package authorize
+package advertise
 
 import (
 	"context"
 	"os"
 	"strings"
 
+	"inet.af/netaddr"
+
 	"github.com/dhermes/tailsk8s/pkg/cli"
-	"github.com/dhermes/tailsk8s/pkg/tailscale/cloud"
-	"github.com/dhermes/tailsk8s/pkg/tailscale/cloud/remix"
 )
 
-// AuthorizeDevice retrieves a device by name / hostname and then uses the
-// device ID to authorize the device.
-func AuthorizeDevice(ctx context.Context, c Config) error {
+// AdvertiseAndAccept first uses the local `tailscaled` API to advertise a
+// new CIDR to the Tailnet and then uses the cloud API to accept the newly
+// added CIDR.
+func AdvertiseAndAccept(ctx context.Context, c Config) error {
 	if strings.HasPrefix(c.APIConfig.APIKey, "file:") {
 		filename := strings.TrimPrefix(c.APIConfig.APIKey, "file:")
 		cli.Printf(ctx, "Reading Tailscale API key from: %s\n", filename)
@@ -37,34 +38,22 @@ func AuthorizeDevice(ctx context.Context, c Config) error {
 		c.APIConfig.APIKey = string(apiKeyBytes)
 	}
 
-	hostname := c.Hostname
-	var err error
-	if hostname == "" {
-		hostname, err = os.Hostname()
-		if err != nil {
-			return err
-		}
+	cidr, err := netaddr.ParseIPPrefix(c.IPv4CIDR)
+	if err != nil {
+		return err
+	}
+
+	err = EditPrefsAdvertiseCIDR(ctx, cidr)
+	if err != nil {
+		return err
+	}
+
+	// Use the local hostname to determine the Tailscale node ID
+	hostname, err := os.Hostname()
+	if err != nil {
+		return err
 	}
 	cli.Printf(ctx, "Using hostname: %s\n", hostname)
 
-	gdbhr := remix.GetDeviceByHostnameRequest{Hostname: hostname}
-	device, err := remix.GetDeviceByHostname(ctx, c.APIConfig, gdbhr)
-	if err != nil {
-		return err
-	}
-
-	if device.Authorized {
-		cli.Printf(ctx, "Device %s is already authorized\n", device.ID)
-		return nil
-	}
-
-	cli.Printf(ctx, "Authorizing device %s...\n", device.ID)
-	adr := cloud.AuthorizeDeviceRequest{DeviceID: device.ID, Authorized: true}
-	_, err = cloud.AuthorizeDevice(ctx, c.APIConfig, adr)
-	if err != nil {
-		return err
-	}
-
-	cli.Printf(ctx, "Authorized device %s\n", device.ID)
-	return nil
+	return AcceptNewCIDR(ctx, c.APIConfig, cidr, hostname)
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package authorize
+package remix
 
 import (
 	"context"
@@ -27,22 +27,22 @@ import (
 // hostname or by the machine name in the Tailnet. Concretely, this lists all
 // devices in the Tailnet, then matches directly against `hostname` **OR**
 // matches that `name` is equal to `{hostname}.{ac.Tailnet}`.
-func GetDeviceByHostname(ctx context.Context, c cloud.Config, hostname string) (*cloud.Device, error) {
+func GetDeviceByHostname(ctx context.Context, c cloud.Config, req GetDeviceByHostnameRequest) (*cloud.Device, error) {
 	devices, err := cloud.GetDevices(ctx, c, cloud.Empty{})
 	if err != nil {
 		return nil, err
 	}
 
-	deviceName := fmt.Sprintf("%s.%s", hostname, c.Tailnet)
+	deviceName := fmt.Sprintf("%s.%s", req.Hostname, c.Tailnet)
 	matches := []cloud.Device{}
 	for _, device := range devices.Devices {
-		if device.Hostname == hostname || device.Name == deviceName {
+		if device.Hostname == req.Hostname || device.Name == deviceName {
 			matches = append(matches, device)
 		}
 	}
 
 	if len(matches) != 1 {
-		return nil, fmt.Errorf("could not find unique device matching hostname %q (%d matches)", hostname, len(matches))
+		return nil, fmt.Errorf("could not find unique device matching hostname %q (%d matches)", req.Hostname, len(matches))
 	}
 
 	device := matches[0]

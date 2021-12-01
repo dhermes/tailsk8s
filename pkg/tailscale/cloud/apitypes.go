@@ -27,6 +27,26 @@ type GetDevicesResponse struct {
 // AuthorizeDeviceRequest is the request for the `POST /api/v2/device/:d/authorized`
 // API route.
 type AuthorizeDeviceRequest struct {
-	ID         string `json:"-"`
+	DeviceID   string `json:"-"`
 	Authorized bool   `json:"authorized"`
+}
+
+// GetRoutesRequest is the request for the `GET /api/v2/device/:d/routes`
+// API route.
+type GetRoutesRequest struct {
+	DeviceID string `json:"-"`
+}
+
+// RoutesResponse is the response for the `GET /api/v2/device/:d/routes`
+// and `POST /api/v2/device/:d/routes` API routes.
+type RoutesResponse struct {
+	AdvertisedRoutes []string `json:"advertisedRoutes"`
+	EnabledRoutes    []string `json:"enabledRoutes"`
+}
+
+// SetRoutesRequest is the request for the `POST /api/v2/device/:d/routes`
+// API route.
+type SetRoutesRequest struct {
+	DeviceID string   `json:"-"`
+	Routes   []string `json:"routes"`
 }

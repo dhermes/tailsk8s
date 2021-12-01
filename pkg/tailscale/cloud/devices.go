@@ -19,7 +19,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -30,8 +30,9 @@ const (
 	// debugCurlAuthorizeDevice is a template to print (in debug mode) the
 	// equivalent curl command to the outgoing request. The POST body is
 	// not expected to be `shlex` quoted by the template user, but it should be.
-	debugCurlAuthorizeDevice = `Calling "authorize device" API route:
+	debugCurlAuthorizeDevice = `Calling "authorize device" cloud API route:
 > curl \
+>   --include \
 >   --user "...redacted API Key...:" \
 >   --data-binary '%s'
 >   %s
@@ -57,7 +58,7 @@ func AuthorizeDevice(ctx context.Context, c Config, adr AuthorizeDeviceRequest) 
 	url := fmt.Sprintf(
 		"%s/api/v2/device/%s/authorized",
 		c.Addr,
-		url.PathEscape(adr.ID),
+		url.PathEscape(adr.DeviceID),
 	)
 	asJSON, err := json.Marshal(adr)
 	if err != nil {
@@ -78,7 +79,7 @@ func AuthorizeDevice(ctx context.Context, c Config, adr AuthorizeDeviceRequest) 
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
 		}

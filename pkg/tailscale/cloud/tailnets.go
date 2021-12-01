@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -26,8 +26,9 @@ import (
 )
 
 const (
-	debugCurlGetDevices = `Calling "get devices in Tailnet" API route:
+	debugCurlGetDevices = `Calling "get devices in Tailnet" cloud API route:
 > curl \
+>   --include \
 >   --user "...redacted API Key...:" \
 >   %s
 `
@@ -53,7 +54,7 @@ func GetDevices(ctx context.Context, c Config, _ Empty) (*GetDevicesResponse, er
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
 		}
