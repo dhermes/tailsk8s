@@ -15,6 +15,19 @@ particularly helpful:
 - [Deploying Kubernetes on Bare Metal][4] by Layachi Khodja
 - [rmb938/tailscale-cni][5]
 
+## Development
+
+```
+$ make  # Or `make help`
+Makefile for the `tailsk8s` project
+
+Usage:
+   make tailscale-advertise-linux-amd64           Build static `tailscale-advertise` binary for linux/amd64
+   make tailscale-authorize-device-linux-amd64    Build static `tailscale-authorize-device` binary for linux/amd64
+   make release
+
+```
+
 [1]: https://pkg.go.dev/badge/github.com/dhermes/tailsk8s.svg
 [2]: https://pkg.go.dev/github.com/dhermes/tailsk8s
 [3]: https://github.com/kelseyhightower/kubernetes-the-hard-way/tree/79a3f79b27bd28f82f071bb877a266c2e62ee506
