@@ -11,9 +11,9 @@ the work and writings of others. I could not have made nearly as much progress
 without example projects, blog posts and great documentation. Some that were
 particularly helpful:
 
-- [kelseyhightower/kubernetes-the-hard-way][3]
+- [kelseyhightower/kubernetes-the-hard-way][3] from Kelsey Hightower
 - [Deploying Kubernetes on Bare Metal][4] by Layachi Khodja
-- [rmb938/tailscale-cni][5]
+- [rmb938/tailscale-cni][5] from Ryan Belgrave
 
 ## Development
 
