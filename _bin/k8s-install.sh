@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Usage:
-#  ./k8s-install.sh NAMED_ARG1 NAMED_ARG2 ...
+#  ./k8s-install.sh
 # Install and configure all Kubernetes specific dependencies on a machine
 # (bare metal or cloud VM).
 
