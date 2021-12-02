@@ -21,7 +21,9 @@
 
 set -e -x
 
-if [ "$#" -ne 1 ]
+## Validate and read inputs
+
+if [ "${#}" -ne 1 ]
 then
   echo "Usage: ./bootstrap-ssh-bare-metal.sh NETCAT_LISTEN_PORT" >&2
   exit 1
@@ -42,7 +44,7 @@ EOF
 
 sudo systemctl restart sshd.service
 
-## Received Authorized Key(s) from a peer on the local network
+## Receive Authorized Key(s) from a peer on the local network
 
 touch "${HOME}/.ssh/authorized_keys"
 chmod 644 "${HOME}/.ssh/authorized_keys"

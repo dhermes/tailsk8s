@@ -21,7 +21,9 @@
 
 set -e -x
 
-if [ "$#" -ne 1 ]
+## Validate and read inputs
+
+if [ "${#}" -ne 1 ]
 then
   echo "Usage: ./new-machine-bare-metal.sh TAILSCALE_AUTHKEY_FILENAME" >&2
   exit 1
@@ -80,7 +82,7 @@ sudo apt-get remove --yes \
   runc
 
 ## Install all APT packages needed
-#### - `ibuntu-server` (if need be); some of the bare metal servers may be
+#### - `ubuntu-server` (if need be); some of the bare metal servers may be
 ####   running Ubuntu Desktop
 #### - Networking tools used for Kubernetes (and debugging if needed);
 ####   `conntrack`, `ipset`, `socat`, `traceroute`
@@ -111,6 +113,14 @@ sudo apt-get install --yes \
 echo "Etc/UTC" | sudo tee /etc/timezone
 sudo dpkg-reconfigure --frontend noninteractive tzdata
 
+## Ensure SSH Password Authentication is disabled
+
+if [ "$(grep '^PasswordAuthentication' /etc/ssh/sshd_config)" != "PasswordAuthentication no" ]
+then
+    echo "SSH Password Authentication is not disabled" >&2
+    exit 1
+fi
+
 ## Ensure the current user can use the Docker socket without `sudo`.
 ## This will (likely) not take effect until a new login shell.
 
@@ -120,7 +130,7 @@ sudo usermod --append --groups docker "${CURRENT_USER}"
 ## Join Tailnet and remove the Tailscale Auth Key.
 #### NOTE: For Tailnets where new devices must be manually authorized, the
 ####       `tailscale up` command will block until the current host is
-####       authorized. The current hose can be authorized in the web UI or the
+####       authorized. The current host can be authorized in the web UI or the
 ####       `tailscale-authorize-linux-amd64-*` binary can be used to authorize
 ####       from the command line.
 
