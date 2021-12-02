@@ -142,6 +142,21 @@ rm --force "${TAILSCALE_AUTHKEY_FILENAME}"
 
 echo "IPv4 address in Tailnet: $(tailscale ip -4)"
 
+## Enable IP Forwarding for Tailscale
+#### https://tailscale.com/kb/1104/enable-ip-forwarding/
+
+if sudo test -f /etc/sysctl.d/tailscale.conf; then
+    echo "/etc/sysctl.d/tailscale.conf exists, will be overwritten."
+    sudo rm --force /etc/sysctl.d/tailscale.conf
+fi
+
+cat <<EOF | sudo tee /etc/sysctl.d/tailscale.conf
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+EOF
+
+sudo sysctl --system
+
 ## Set up `ufw` (Uncomplicated Firewall)
 
 sudo ufw allow in on tailscale0

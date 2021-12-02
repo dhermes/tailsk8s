@@ -50,11 +50,11 @@ sudo systemctl restart docker
 
 if sudo test -f /etc/modules-load.d/k8s.conf; then
     echo "/etc/modules-load.d/k8s.conf exists, will be overwritten."
-    sudo rm --force --recursive /etc/modules-load.d/k8s.conf
+    sudo rm --force /etc/modules-load.d/k8s.conf
 fi
 if sudo test -f /etc/sysctl.d/k8s.conf; then
     echo "/etc/sysctl.d/k8s.conf exists, will be overwritten."
-    sudo rm --force --recursive /etc/sysctl.d/k8s.conf
+    sudo rm --force /etc/sysctl.d/k8s.conf
 fi
 
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
