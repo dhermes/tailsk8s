@@ -21,7 +21,7 @@
 
 set -e -x
 
-if [ "$#" -ne 2 ]
+if [ "$#" -ne 1 ]
 then
   echo "Usage: ./bootstrap-ssh-bare-metal.sh NETCAT_LISTEN_PORT" >&2
   exit 1
