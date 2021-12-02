@@ -16,19 +16,97 @@
 # Usage:
 #  ./k8s-install.sh NAMED_ARG1 NAMED_ARG2 ...
 # Install and configure all Kubernetes specific dependencies on a machine
-# (bare metal or cloud VM). In particular:
-# - Configure the Docker daemon to use `systemd` as `cgroup` driver
-# - Allow `iptables` to see bridged traffic
-# - Install `kubeadm`, `kubelet` and `kubectl` (v1.22.4)
-# - Install core Kubernetes CNI (container networking) plugins (`bandwith`,
-#   `bridge`, `dhcp`, etc.)
-# - Install core CRI (container runtime) tools `crictl`
-# - Install and enable `kubelet` as a `systemd` unit (with `kubeadm` support)
-# - Install networking tools needed by Kubernetes (e.g. `conntrack`)
-# - Disable swap for the hard drive
-# - Prefetch all images needed by `kubeadm`
+# (bare metal or cloud VM).
 
 set -e -x
 
-echo "Not implemented" >&2
-exit 1
+## Input Variables
+
+ARCH="amd64"
+CNI_VERSION="v0.8.2"
+CRICTL_VERSION="v1.22.0"
+K8S_VERSION="v1.22.4"
+K8S_RELEASE_VERSION="v0.4.0"  # NOTE: This is the version of the `kubernetes/release` project
+K8S_DOWNLOAD_DIR=/usr/local/bin
+
+## Use `systemd` as cgroup driver for Docker
+
+#### H/T: https://kubernetes.io/docs/setup/production-environment/container-runtimes/
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+sudo systemctl enable docker
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+## Let `iptables`` see bridged traffic
+
+if sudo test -f /etc/modules-load.d/k8s.conf; then
+    echo "/etc/modules-load.d/k8s.conf exists, will be overwritten."
+    sudo rm --force --recursive /etc/modules-load.d/k8s.conf
+fi
+if sudo test -f /etc/sysctl.d/k8s.conf; then
+    echo "/etc/sysctl.d/k8s.conf exists, will be overwritten."
+    sudo rm --force --recursive /etc/sysctl.d/k8s.conf
+fi
+
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+br_netfilter
+EOF
+
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+
+sudo sysctl --system
+
+## Install kubeadm, kubelet and kubectl
+
+cd "${K8S_DOWNLOAD_DIR}"
+sudo curl --location --remote-name-all \
+  "https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/${ARCH}/{kubeadm,kubelet,kubectl}"
+sudo chmod +x {kubeadm,kubelet,kubectl}
+
+## Install standard CNI plugins
+
+sudo mkdir --parents /opt/cni/bin
+curl --location \
+  "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz" \
+  | sudo tar --directory /opt/cni/bin --extract --gzip
+
+## Install `crictl`
+
+sudo mkdir --parents "${K8S_DOWNLOAD_DIR}"
+curl --location \
+  "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" \
+  | sudo tar --directory "${K8S_DOWNLOAD_DIR}" --extract --gzip
+
+## Configure systemd to run `kubelet` unit and support `kubeadm`
+
+curl --silent --show-error --location \
+  "https://raw.githubusercontent.com/kubernetes/release/${K8S_RELEASE_VERSION}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service" \
+  | sed "s:/usr/bin:${K8S_DOWNLOAD_DIR}:g" \
+  | sudo tee /etc/systemd/system/kubelet.service
+sudo mkdir --parents /etc/systemd/system/kubelet.service.d
+curl --silent --show-error --location \
+  "https://raw.githubusercontent.com/kubernetes/release/${K8S_RELEASE_VERSION}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" \
+  | sed "s:/usr/bin:${K8S_DOWNLOAD_DIR}:g" \
+  | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+## Disable Swap
+
+sudo swapoff --all
+free --human  ## Sanity Check
+sudo sed -i '/ swap / s/^/#/' /etc/fstab
+
+## Pre-fetch all images used by `kubeadm`
+
+kubeadm config images pull
