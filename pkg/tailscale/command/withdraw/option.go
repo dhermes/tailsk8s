@@ -12,12 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package advertise uses local and cloud Tailscale APIs to advertise a route to a Tailnet.
-//
-// It uses the local API to advertise a route to peers and make sure peer
-// routes are accepted locally. Then it uses the Tailscale Cloud API to accept
-// the newly advertised route.
-//
-// This is provided in a way to optimize the testable surface area (even for
-// untested parts of the code) without having any usage of `os.Exit()`.
-package advertise
+package withdraw
+
+// Option represents an initialization helper that can modify a config in-place.
+type Option func(*Config) error

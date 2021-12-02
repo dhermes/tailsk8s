@@ -31,16 +31,18 @@ import (
 )
 
 const (
-	debugCurlGetPrefs = `Calling "get prefs" local API route:
+	// DebugCurlGetPrefs is a debug mode representation of the "get prefs"
+	// curl command.
+	DebugCurlGetPrefs = `Calling "get prefs" local API route:
 > curl \
 >   --include \
 >   --unix-socket /var/run/tailscale/tailscaled.sock \
 >   http://no-op-host.invalid/localapi/v0/prefs
 `
-	// debugCurlEditPrefs is a template to print (in debug mode) the
+	// DebugCurlEditPrefs is a template to print (in debug mode) the
 	// equivalent curl command to the outgoing request. The PATCH body is
 	// not expected to be `shlex` quoted by the template user, but it should be.
-	debugCurlEditPrefs = `Calling "edit prefs" local API route:
+	DebugCurlEditPrefs = `Calling "edit prefs" local API route:
 > curl \
 >   --include \
 >   --request PATCH \
@@ -60,15 +62,15 @@ const (
 // If the accept routes flag and the advertised CIDR are both present, this
 // will make no changes.
 func EditPrefsAdvertiseCIDR(ctx context.Context, cidr netaddr.IPPrefix) error {
-	cli.DebugPrintf(ctx, debugCurlGetPrefs)
+	cli.DebugPrintf(ctx, DebugCurlGetPrefs)
 	before, err := tailscale.GetPrefs(ctx)
 	if err != nil {
 		return err
 	}
 
-	hasCIDR := ipPrefixesContain(before.AdvertiseRoutes, cidr)
+	hasCIDR := IPPrefixesContain(before.AdvertiseRoutes, cidr)
 	if hasCIDR && before.RouteAll {
-		cli.Println(ctx, "Routes already accepted and advertised")
+		cli.Println(ctx, "Route already accepted and advertised")
 		return nil
 	}
 
@@ -89,7 +91,7 @@ func EditPrefsAdvertiseCIDR(ctx context.Context, cidr netaddr.IPPrefix) error {
 		if err != nil {
 			asJSON = []byte("...")
 		}
-		cli.DebugPrintf(ctx, debugCurlEditPrefs, string(asJSON))
+		cli.DebugPrintf(ctx, DebugCurlEditPrefs, string(asJSON))
 	}
 
 	after, err := tailscale.EditPrefs(ctx, patch)
@@ -97,24 +99,27 @@ func EditPrefsAdvertiseCIDR(ctx context.Context, cidr netaddr.IPPrefix) error {
 		return err
 	}
 
-	diffBeforeAfter(ctx, before, after)
+	DiffBeforeAfter(ctx, before, after)
 	return nil
 }
 
-func ipPrefixesContain(prefixes []netaddr.IPPrefix, cidr netaddr.IPPrefix) bool {
+// IPPrefixesContain checks if a CIDR (`IPPrefix`) is contained in a slice of
+// CIDR values. (This is a "fuzzy" check, it uses string values for comparison.)
+func IPPrefixesContain(prefixes []netaddr.IPPrefix, cidr netaddr.IPPrefix) bool {
+	cidrString := cidr.String()
 	for _, prefix := range prefixes {
-		if prefix.String() == cidr.String() {
+		if prefix.String() == cidrString {
 			return true
 		}
 	}
 	return false
 }
 
-// diffBeforeAfter writes `before` and `after` to JSON and execs out to
+// DiffBeforeAfter writes `before` and `after` to JSON and execs out to
 // `diff` to compare them. If **any** of these steps errors, it will just exit
 // since this is meant to **aid** understanding during debug mode (vs. to
 // provide actual functionality).
-func diffBeforeAfter(ctx context.Context, before, after *ipn.Prefs) {
+func DiffBeforeAfter(ctx context.Context, before, after *ipn.Prefs) {
 	if !cli.GetDebug(ctx) {
 		return
 	}

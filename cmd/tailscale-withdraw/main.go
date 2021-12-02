@@ -22,25 +22,25 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dhermes/tailsk8s/pkg/cli"
-	"github.com/dhermes/tailsk8s/pkg/tailscale/command/advertise"
+	"github.com/dhermes/tailsk8s/pkg/tailscale/command/withdraw"
 )
 
 func run() error {
 	ctx := context.Background()
 
-	c, err := advertise.NewConfig()
+	c, err := withdraw.NewConfig()
 	if err != nil {
 		return err
 	}
 	debug := false
 	cmd := &cobra.Command{
-		Use:           "tailscale-advertise",
-		Short:         "Advertise to the Tailnet that the local node handles a given CIDR range",
+		Use:           "tailscale-withdraw",
+		Short:         "Withdraw an advertisement to the Tailnet of handling for a given CIDR range",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			ctx := cli.WithDebug(ctx, debug)
-			return advertise.AdvertiseAndAccept(ctx, c)
+			return withdraw.WithdrawAndDisable(ctx, c)
 		},
 	}
 
@@ -61,7 +61,7 @@ func run() error {
 		&c.IPv4CIDR,
 		"cidr",
 		c.IPv4CIDR,
-		"The (IPv4) CIDR to advertise",
+		"The (IPv4) CIDR to withdraw",
 	)
 	cmd.PersistentFlags().BoolVar(
 		&debug,

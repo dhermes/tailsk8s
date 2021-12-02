@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package advertise
+package withdraw
 
 import (
 	"context"
@@ -23,11 +23,12 @@ import (
 	"github.com/dhermes/tailsk8s/pkg/cli"
 	"github.com/dhermes/tailsk8s/pkg/tailscale/cloud"
 	"github.com/dhermes/tailsk8s/pkg/tailscale/cloud/remix"
+	"github.com/dhermes/tailsk8s/pkg/tailscale/command/advertise"
 )
 
-// AcceptNewCIDR ensures that a newly advertised CIDR is an enabled subnet
-// in the Tailscale cloud API.
-func AcceptNewCIDR(ctx context.Context, c cloud.Config, cidr netaddr.IPPrefix, hostname string) error {
+// DisableWithdrawnCIDR ensures that a recently withdrawn CIDR is removed from
+// the set of enabled routes in the Tailscale cloud API.
+func DisableWithdrawnCIDR(ctx context.Context, c cloud.Config, cidr netaddr.IPPrefix, hostname string) error {
 	// Retrieve the Tailscale node ID corresponding to the local hostname
 	gdbhr := remix.GetDeviceByHostnameRequest{Hostname: hostname}
 	device, err := remix.GetDeviceByHostname(ctx, c, gdbhr)
@@ -54,44 +55,41 @@ func AcceptNewCIDR(ctx context.Context, c cloud.Config, cidr netaddr.IPPrefix, h
 		}
 	}
 
-	// Ensure `cidr` is contained in `routes.AdvertisedRoutes`. If it **isn't**
-	// it could be the fault of the caller (i.e. the CIDR was never advertised)
+	// Ensure `cidr` is **not** contained in `routes.AdvertisedRoutes`. If it **is**
+	// it could be the fault of the caller (i.e. the CIDR was never withdrawn)
 	// or it could be the result of a race condition (i.e. this request is made
-	// **before** the newly advertised CIDR is acknowledged by the Tailscale
+	// **before** the newly withdrawn CIDR is acknowledged by the Tailscale
 	// control plane).
-	if !RoutesContain(rr.AdvertisedRoutes, cidr) {
-		return fmt.Errorf("new route (%s) is not among list of advertised routes", cidr)
+	if advertise.RoutesContain(rr.AdvertisedRoutes, cidr) {
+		return fmt.Errorf("withdrawn route (%s) is still among list of advertised routes", cidr)
 	}
 
-	// If `cidr` is contained in `routes.EnabledRoutes`, there is nothing to do.
-	if RoutesContain(rr.EnabledRoutes, cidr) {
-		cli.Printf(ctx, "Device %s has already enabled route %s\n", device.ID, cidr)
+	// If `cidr` is not contained in `routes.EnabledRoutes`, there is nothing to do.
+	if !advertise.RoutesContain(rr.EnabledRoutes, cidr) {
+		cli.Printf(ctx, "Device %s has already disabled route %s\n", device.ID, cidr)
 		return nil
 	}
 
-	// ...otherwise, append it and call `SetRoutes()`
-	routes := append(rr.EnabledRoutes, cidr.String())
+	// ...otherwise, remove it and call `SetRoutes()`
+	routes := routesRemove(rr.EnabledRoutes, cidr)
 	srr := cloud.SetRoutesRequest{DeviceID: device.ID, Routes: routes}
-	cli.Printf(ctx, "Enabling route %s for device %s...\n", cidr, device.ID)
+	cli.Printf(ctx, "Disabling route %s for device %s...\n", cidr, device.ID)
 	_, err = cloud.SetRoutes(ctx, c, srr)
 	if err != nil {
 		return err
 	}
 
-	cli.Printf(ctx, "Enabled route %s for device %s\n", cidr, device.ID)
+	cli.Printf(ctx, "Disabled route %s for device %s\n", cidr, device.ID)
 	return nil
 }
 
-// RoutesContain checks if a CIDR (`IPPrefix`) is contained in a slice of
-// CIDR string. (This is a "fuzzy" check, it uses string value of the `IPPrefix`
-// for comparison.) The type mismatch is due to the fact that the routes come
-// from the Tailscale cloud API as a string slice.
-func RoutesContain(routes []string, cidr netaddr.IPPrefix) bool {
+func routesRemove(routes []string, cidr netaddr.IPPrefix) []string {
+	keep := make([]string, 0, len(routes))
 	cidrString := cidr.String()
 	for _, r := range routes {
-		if r == cidrString {
-			return true
+		if r != cidrString {
+			keep = append(keep, r)
 		}
 	}
-	return false
+	return keep
 }
