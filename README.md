@@ -31,6 +31,7 @@ Makefile for the `tailsk8s` project
 Usage:
    make tailscale-advertise-linux-amd64    Build static `tailscale-advertise` binary for linux/amd64
    make tailscale-authorize-linux-amd64    Build static `tailscale-authorize` binary for linux/amd64
+   make tailscale-withdraw-linux-amd64     Build static `tailscale-withdraw` binary for linux/amd64
    make release                            Build all static binaries
 
 ```
