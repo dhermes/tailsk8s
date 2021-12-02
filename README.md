@@ -29,9 +29,9 @@ $ make  # Or `make help`
 Makefile for the `tailsk8s` project
 
 Usage:
-   make tailscale-advertise-linux-amd64           Build static `tailscale-advertise` binary for linux/amd64
-   make tailscale-authorize-device-linux-amd64    Build static `tailscale-authorize-device` binary for linux/amd64
-   make release
+   make tailscale-advertise-linux-amd64    Build static `tailscale-advertise` binary for linux/amd64
+   make tailscale-authorize-linux-amd64    Build static `tailscale-authorize` binary for linux/amd64
+   make release                            Build all static binaries
 
 ```
 

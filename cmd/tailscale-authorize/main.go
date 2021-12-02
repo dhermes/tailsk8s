@@ -20,7 +20,7 @@ func run() error {
 	}
 	debug := false
 	cmd := &cobra.Command{
-		Use:           "tailscale-authorize-device",
+		Use:           "tailscale-authorize",
 		Short:         "Authorize a new device to join a Tailnet",
 		SilenceErrors: true,
 		SilenceUsage:  true,
