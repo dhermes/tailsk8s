@@ -28,7 +28,7 @@ import (
 const (
 	// debugCurlStatusWithoutPeers is a debug mode representation of the
 	// "status without peers" curl command.
-	debugCurlStatusWithoutPeers = `Calling ""status without peers" local API route:
+	debugCurlStatusWithoutPeers = `Calling "status without peers" local API route:
 > curl \
 >   --include \
 >   --unix-socket /var/run/tailscale/tailscaled.sock \
@@ -66,11 +66,21 @@ func DefaultTailnet(ctx context.Context, tailnet string) (string, error) {
 	cli.DebugPrintf(ctx, debugCurlStatusWithoutPeers)
 	status, err := tailscale.StatusWithoutPeers(ctx)
 	if err != nil {
-		return "", nil
+		// Early exit (but don't fail) if `tailscaled` isn't running.
+		if tailscaledNotRunning(err) {
+			cli.DebugPrintf(ctx, "Status Without Peers error: %s\n", err.Error())
+			return "", nil
+		}
+
+		return "", err
 	}
 
 	cli.Printf(ctx, "Inferring Tailnet from magic DNS suffix: %s\n", status.MagicDNSSuffix)
 	return getTailnet(status.MagicDNSSuffix)
+}
+
+func tailscaledNotRunning(err error) bool {
+	return strings.HasSuffix(err.Error(), ": connect: no such file or directory")
 }
 
 // getTailnet parses a magic DNS suffix to determine the Tailnet name. The
