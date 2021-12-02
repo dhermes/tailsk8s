@@ -69,6 +69,7 @@ func DefaultTailnet(ctx context.Context, tailnet string) (string, error) {
 		return "", nil
 	}
 
+	cli.Printf(ctx, "Inferring Tailnet from magic DNS suffix: %s\n", status.MagicDNSSuffix)
 	return getTailnet(status.MagicDNSSuffix)
 }
 

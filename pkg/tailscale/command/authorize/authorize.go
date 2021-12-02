@@ -19,7 +19,6 @@ import (
 	"os"
 
 	"github.com/dhermes/tailsk8s/pkg/cli"
-	tailscalecli "github.com/dhermes/tailsk8s/pkg/tailscale/cli"
 	"github.com/dhermes/tailsk8s/pkg/tailscale/cloud"
 	"github.com/dhermes/tailsk8s/pkg/tailscale/cloud/remix"
 )
@@ -27,12 +26,7 @@ import (
 // AuthorizeDevice retrieves a device by name / hostname and then uses the
 // device ID to authorize the device.
 func AuthorizeDevice(ctx context.Context, c Config) error {
-	var err error
-	c.APIConfig.APIKey, err = tailscalecli.ReadAPIKey(ctx, c.APIConfig.APIKey)
-	if err != nil {
-		return err
-	}
-	c.APIConfig.Tailnet, err = tailscalecli.DefaultTailnet(ctx, c.APIConfig.Tailnet)
+	err := c.APIConfig.Resolve(ctx)
 	if err != nil {
 		return err
 	}

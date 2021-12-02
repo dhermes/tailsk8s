@@ -15,7 +15,10 @@
 package cloud
 
 import (
+	"context"
 	"net/http"
+
+	tailscalecli "github.com/dhermes/tailsk8s/pkg/tailscale/cli"
 )
 
 // Config provides helpers that are required to interact with the Tailscale
@@ -45,4 +48,34 @@ func NewConfig(opts ...Option) (Config, error) {
 //       it's provided here to make the code easier to test at a later date.
 func (c Config) HTTPClient() *http.Client {
 	return http.DefaultClient
+}
+
+// Resolve sets defaults based on default conventions or based on the local
+// environment.
+// - `Addr` defaults to `https://api.tailscale.com`
+// - If `APIKey` is prefixed with `file:`, the file will be read from the
+//   filesystem
+// - If `Tailnet is unset, the local `tailscaled` API will be used to query
+//   for the magic DNS name.
+func (c *Config) Resolve(ctx context.Context) error {
+	apiKey, err := tailscalecli.ReadAPIKey(ctx, c.APIKey)
+	if err != nil {
+		return err
+	}
+	tailnet, err := tailscalecli.DefaultTailnet(ctx, c.Tailnet)
+	if err != nil {
+		return err
+	}
+
+	c.Addr = stringDefault(c.Addr, "https://api.tailscale.com")
+	c.APIKey = apiKey
+	c.Tailnet = tailnet
+	return nil
+}
+
+func stringDefault(s1, s2 string) string {
+	if s1 == "" {
+		return s2
+	}
+	return s1
 }

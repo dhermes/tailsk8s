@@ -21,20 +21,13 @@ import (
 	"inet.af/netaddr"
 
 	"github.com/dhermes/tailsk8s/pkg/cli"
-	tailscalecli "github.com/dhermes/tailsk8s/pkg/tailscale/cli"
 )
 
 // AdvertiseAndAccept first uses the local `tailscaled` API to advertise a
 // new CIDR to the Tailnet and then uses the cloud API to accept the newly
 // added CIDR.
 func AdvertiseAndAccept(ctx context.Context, c Config) error {
-	var err error
-	// TODO: Move this into a `cloud.Config.Resolve(ctx)` method.
-	c.APIConfig.APIKey, err = tailscalecli.ReadAPIKey(ctx, c.APIConfig.APIKey)
-	if err != nil {
-		return err
-	}
-	c.APIConfig.Tailnet, err = tailscalecli.DefaultTailnet(ctx, c.APIConfig.Tailnet)
+	err := c.APIConfig.Resolve(ctx)
 	if err != nil {
 		return err
 	}
