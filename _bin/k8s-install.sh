@@ -20,6 +20,14 @@
 
 set -e -x
 
+## Validate and read inputs
+
+if [ "${#}" -ne 0 ]
+then
+  echo "Usage: ./k8s-install.sh" >&2
+  exit 1
+fi
+
 ## Input Variables
 
 ARCH="amd64"

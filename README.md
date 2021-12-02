@@ -19,8 +19,10 @@ without example projects, blog posts and great documentation. Some that were
 particularly helpful:
 
 - [kelseyhightower/kubernetes-the-hard-way][3] from Kelsey Hightower
-- [Deploying Kubernetes on Bare Metal][4] by Layachi Khodja
+- [Deploying Kubernetes on Bare Metal][4] by [Layachi Khodja][8]
 - [rmb938/tailscale-cni][5] from Ryan Belgrave
+- [`kubeadm init/join` and ExternalIP vs InternalIP][6] from
+  [Alasdair Lumsden][7]
 
 ## Development
 
@@ -41,3 +43,6 @@ Usage:
 [3]: https://github.com/kelseyhightower/kubernetes-the-hard-way/tree/79a3f79b27bd28f82f071bb877a266c2e62ee506
 [4]: https://www.inap.com/blog/deploying-kubernetes-on-bare-metal/
 [5]: https://github.com/rmb938/tailscale-cni/tree/dba6992227958e61ac85b3168dbcae4ff10dde57
+[6]: https://medium.com/@aleverycity/kubeadm-init-join-and-externalip-vs-internalip-519519ddff89
+[7]: https://github.com/alaslums
+[8]: https://linkedin.com/in/layachi-khodja-38428a1

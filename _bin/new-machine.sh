@@ -52,6 +52,7 @@ sudo apt-get install --yes curl gnupg lsb-core
 ## Add Tailscale and Docker custom APT repositories.
 #### - https://tailscale.com/download/linux/ubuntu-2004
 #### - https://docs.docker.com/engine/install/ubuntu/
+#### - https://docs.docker.com/engine/install/linux-postinstall/
 
 curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.gpg \
   | sudo apt-key add -
@@ -88,12 +89,14 @@ sudo apt-get remove --yes \
 #### - Tailscale
 #### - NFS client and server
 #### - Uncomplicated Firewall (ufw); this **should** be installed by default
+#### - `envsubst` via `gettext-base` (will almost certainly be installed already)
 
 sudo apt-get install --yes \
   conntrack \
   containerd.io \
   docker-ce \
   docker-ce-cli \
+  gettext-base \
   ipset \
   nfs-common \
   nfs-kernel-server \
@@ -150,6 +153,7 @@ EOF
 sudo sysctl --system
 
 ## Set up `ufw` (Uncomplicated Firewall)
+#### See: https://tailscale.com/kb/1077/secure-server-ubuntu-18-04/
 
 sudo ufw allow in on tailscale0
 sudo ufw allow 41641/udp
