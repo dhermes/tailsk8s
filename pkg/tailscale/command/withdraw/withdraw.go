@@ -17,25 +17,21 @@ package withdraw
 import (
 	"context"
 	"os"
-	"strings"
 
 	"inet.af/netaddr"
 
 	"github.com/dhermes/tailsk8s/pkg/cli"
+	tailscalecli "github.com/dhermes/tailsk8s/pkg/tailscale/cli"
 )
 
 // WithdrawAndDisable first uses the local `tailscaled` API to withdraw a
 // CIDR from the Tailnet and then uses the cloud API to disable the withdrawn
 // CIDR.
 func WithdrawAndDisable(ctx context.Context, c Config) error {
-	if strings.HasPrefix(c.APIConfig.APIKey, "file:") {
-		filename := strings.TrimPrefix(c.APIConfig.APIKey, "file:")
-		cli.Printf(ctx, "Reading Tailscale API key from: %s\n", filename)
-		apiKeyBytes, err := os.ReadFile(filename)
-		if err != nil {
-			return err
-		}
-		c.APIConfig.APIKey = string(apiKeyBytes)
+	var err error
+	c.APIConfig.APIKey, err = tailscalecli.ReadAPIKey(ctx, c.APIConfig.APIKey)
+	if err != nil {
+		return err
 	}
 
 	cidr, err := netaddr.ParseIPPrefix(c.IPv4CIDR)

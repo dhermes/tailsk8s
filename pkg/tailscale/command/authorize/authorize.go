@@ -17,9 +17,9 @@ package authorize
 import (
 	"context"
 	"os"
-	"strings"
 
 	"github.com/dhermes/tailsk8s/pkg/cli"
+	tailscalecli "github.com/dhermes/tailsk8s/pkg/tailscale/cli"
 	"github.com/dhermes/tailsk8s/pkg/tailscale/cloud"
 	"github.com/dhermes/tailsk8s/pkg/tailscale/cloud/remix"
 )
@@ -27,18 +27,13 @@ import (
 // AuthorizeDevice retrieves a device by name / hostname and then uses the
 // device ID to authorize the device.
 func AuthorizeDevice(ctx context.Context, c Config) error {
-	if strings.HasPrefix(c.APIConfig.APIKey, "file:") {
-		filename := strings.TrimPrefix(c.APIConfig.APIKey, "file:")
-		cli.Printf(ctx, "Reading Tailscale API key from: %s\n", filename)
-		apiKeyBytes, err := os.ReadFile(filename)
-		if err != nil {
-			return err
-		}
-		c.APIConfig.APIKey = string(apiKeyBytes)
+	var err error
+	c.APIConfig.APIKey, err = tailscalecli.ReadAPIKey(ctx, c.APIConfig.APIKey)
+	if err != nil {
+		return err
 	}
 
 	hostname := c.Hostname
-	var err error
 	if hostname == "" {
 		hostname, err = os.Hostname()
 		if err != nil {
