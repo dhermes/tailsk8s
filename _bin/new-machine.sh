@@ -34,6 +34,7 @@ TAILSCALE_AUTHKEY_FILENAME="${1}"
 
 CURRENT_USER="$(whoami)"
 CURRENT_HOSTNAME="$(hostname)"
+K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
 
 ## Ensure Tailscale Auth Key file exists
 
@@ -87,7 +88,6 @@ sudo apt-get remove --yes \
 ####   `conntrack`, `ipset`, `socat`, `traceroute`
 #### - Docker Engine client and server and containerd
 #### - Tailscale
-#### - NFS client and server
 #### - Uncomplicated Firewall (ufw); this **should** be installed by default
 #### - `envsubst` via `gettext-base` (will almost certainly be installed already)
 
@@ -98,8 +98,6 @@ sudo apt-get install --yes \
   docker-ce-cli \
   gettext-base \
   ipset \
-  nfs-common \
-  nfs-kernel-server \
   socat \
   tailscale \
   traceroute \
@@ -123,6 +121,11 @@ fi
 
 sudo groupadd --force docker
 sudo usermod --append --groups docker "${CURRENT_USER}"
+
+## Prepare configuration bootstrap directory
+
+rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
+mkdir --parents "${K8S_BOOTSTRAP_DIR}"
 
 ## Join Tailnet and remove the Tailscale Auth Key.
 #### NOTE: For Tailnets where new devices must be manually authorized, the

@@ -22,3 +22,11 @@ set -e -x
 
 echo "Not implemented" >&2
 exit 1
+
+####- List of known values that can be re-used as needed:
+####- ${K8S_BOOTSTRAP_DIR}/ca-cert-hash.txt
+####- ${K8S_BOOTSTRAP_DIR}/certificate-key.txt
+####- ${K8S_BOOTSTRAP_DIR}/cluster-name.txt
+####- ${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt
+####- ${K8S_BOOTSTRAP_DIR}/join-token.txt
+####- ${K8S_BOOTSTRAP_DIR}/kube-config.yaml

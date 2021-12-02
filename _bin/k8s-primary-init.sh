@@ -20,8 +20,10 @@
 # yet, but once the cluster exists, the "primary" node can be removed without
 # issue (provided there are other control plane nodes).
 #
-# To distribute bootstrap configuration to other nodes, an NFS share will be
-# provided at `/opt/nfs/k8s-bootstrap` on this "primary" machine.
+# To distribute bootstrap configuration to other nodes, a dedicated directory
+# (/var/data/tailsk8s-bootstrap/) will be essentially as a key-value store to
+# stash configuration files that can be securely copied (via `scp`) back to the
+# host that is bringing up the Kubernetes cluster.
 
 set -e -x
 
@@ -43,7 +45,7 @@ TAILSCALE_API_KEY_FILENAME="${7}"
 ## Computed Variables
 
 CURRENT_HOSTNAME="$(hostname)"
-K8S_BOOTSTRAP_DIR="/opt/nfs/k8s-bootstrap/${CLUSTER_NAME}"
+K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
 OWNER_GROUP="$(id --user):$(id --group)"
 HOST_IP="$(tailscale ip -4)"
 
@@ -63,22 +65,6 @@ then
     exit 1
 fi
 
-## Run NFS Server + Emulate NFS Client Layout
-
-sudo mkdir --parents /opt/nfs/k8s-bootstrap
-sudo chown "${OWNER_GROUP}" /opt/nfs/k8s-bootstrap
-
-#### Export the path if not already exported
-if ! grep --quiet '^/opt/nfs/k8s-bootstrap' /etc/exports
-then
-  cat <<EOF | sudo tee --append /etc/exports
-/opt/nfs/k8s-bootstrap    *(rw,sync,no_subtree_check)
-EOF
-fi
-
-sudo systemctl start nfs-kernel-server.service
-sudo exportfs -a
-
 ## Kubernetes Cluster Bootstrap (Before)
 
 rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
@@ -89,6 +75,9 @@ chmod 400 "${K8S_BOOTSTRAP_DIR}/join-token.txt"
 
 kubeadm certs certificate-key > "${K8S_BOOTSTRAP_DIR}/certificate-key.txt"
 chmod 400 "${K8S_BOOTSTRAP_DIR}/certificate-key.txt"
+
+echo "${CLUSTER_NAME}" > "${K8S_BOOTSTRAP_DIR}/cluster-name.txt"
+chmod 444 "${K8S_BOOTSTRAP_DIR}/cluster-name.txt"
 
 echo "${CONTROL_PLANE_LOAD_BALANCER}" > "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
