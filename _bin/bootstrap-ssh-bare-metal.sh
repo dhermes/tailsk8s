@@ -30,10 +30,18 @@ then
 fi
 NETCAT_LISTEN_PORT="${1}"
 
-## Ensure netcat, SSH server and SSH client are installed
+## Install all APT packages needed
+#### - `netcat` for using a raw TCP listener
+#### - SSH client and server (should already be present from previous steps)
+#### - `ubuntu-server` (if need be); some of the bare metal servers may be
+####   running Ubuntu Desktop
 
 sudo apt-get update
-sudo apt-get install --yes netcat openssh-client openssh-server
+sudo apt-get install --yes \
+  netcat \
+  openssh-client \
+  openssh-server \
+  ubuntu-server
 
 ## Disable SSH Password Authentication and restart SSH server
 
@@ -44,14 +52,32 @@ EOF
 
 sudo systemctl restart sshd.service
 
-## Receive Authorized Key(s) from a peer on the local network
-
-touch "${HOME}/.ssh/authorized_keys"
-chmod 644 "${HOME}/.ssh/authorized_keys"
+## Receive authorized key(s) from a peer on the local network
 
 echo "Please send authorized keys to raw TCP listener on port ${NETCAT_LISTEN_PORT}"
 echo "The list of all known IP addresses for this host is:"
 hostname --all-ip-addresses
 
 echo "Please send authorized keys to raw TCP listener on port ${NETCAT_LISTEN_PORT}"
-echo thanks | netcat -l "${NETCAT_LISTEN_PORT}" -b >> "${HOME}/.ssh/authorized_keys"
+echo thanks | netcat -l "${NETCAT_LISTEN_PORT}" -b > "${HOME}/.extra_authorized_keys"
+
+## Add extra authorized key(s) to SSH. In order to ensure the keys received
+## over the local network are legitimate, a prompt will be used first.
+
+echo "Received extra \`authorized_keys\`:"
+echo '================================='
+cat "${HOME}/.extra_authorized_keys"
+echo '================================='
+
+read -r -p ">> Accept extra authorized keys (y/n)? " ACCEPT_PROMPT
+if [ "${ACCEPT_PROMPT}" != "y" ] && [ "${ACCEPT_PROMPT}" != "Y" ]
+then
+  echo "Rejected extra authorized keys" >&2
+  rm --force "${HOME}/.extra_authorized_keys"
+  exit 1
+fi
+
+touch "${HOME}/.ssh/authorized_keys"
+chmod 644 "${HOME}/.ssh/authorized_keys"
+cat "${HOME}/.extra_authorized_keys" >> "${HOME}/.ssh/authorized_keys"
+rm --force "${HOME}/.extra_authorized_keys"

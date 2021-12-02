@@ -14,10 +14,10 @@
 # limitations under the License.
 
 # Usage:
-#  ./new-machine-bare-metal.sh TAILSCALE_AUTHKEY_FILENAME
-# Prepares a **fresh** Ubuntu 20.04 bare metal machine by installing required
-# Debian packages, configuring `ufw` (Uncomplicated Firewall), enabling
-# SSH (without password authentication) and joining a Tailscale Tailnet.
+#  ./new-machine.sh TAILSCALE_AUTHKEY_FILENAME
+# Prepares a **fresh** Ubuntu 20.04 machine by installing required Debian
+# packages, configuring `ufw` (Uncomplicated Firewall), enabling SSH (without
+# password authentication) and joining a Tailscale Tailnet.
 
 set -e -x
 
@@ -25,7 +25,7 @@ set -e -x
 
 if [ "${#}" -ne 1 ]
 then
-  echo "Usage: ./new-machine-bare-metal.sh TAILSCALE_AUTHKEY_FILENAME" >&2
+  echo "Usage: ./new-machine.sh TAILSCALE_AUTHKEY_FILENAME" >&2
   exit 1
 fi
 TAILSCALE_AUTHKEY_FILENAME="${1}"
@@ -82,11 +82,8 @@ sudo apt-get remove --yes \
   runc
 
 ## Install all APT packages needed
-#### - `ubuntu-server` (if need be); some of the bare metal servers may be
-####   running Ubuntu Desktop
 #### - Networking tools used for Kubernetes (and debugging if needed);
 ####   `conntrack`, `ipset`, `socat`, `traceroute`
-#### - SSH client and server (should already be present from previous steps)
 #### - Docker Engine client and server and containerd
 #### - Tailscale
 #### - NFS client and server
@@ -100,17 +97,14 @@ sudo apt-get install --yes \
   ipset \
   nfs-common \
   nfs-kernel-server \
-  openssh-client \
-  openssh-server \
   socat \
   tailscale \
   traceroute \
-  ubuntu-server \
   ufw
 
 ## Ensure Timezone is UTC
 
-echo "Etc/UTC" | sudo tee /etc/timezone
+echo 'Etc/UTC' | sudo tee /etc/timezone
 sudo dpkg-reconfigure --frontend noninteractive tzdata
 
 ## Ensure SSH Password Authentication is disabled
