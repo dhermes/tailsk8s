@@ -16,14 +16,28 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
+
+	"tailscale.com/client/tailscale"
 
 	"github.com/dhermes/tailsk8s/pkg/cli"
 )
 
+const (
+	// debugCurlStatusWithoutPeers is a debug mode representation of the
+	// "status without peers" curl command.
+	debugCurlStatusWithoutPeers = `Calling ""status without peers" local API route:
+> curl \
+>   --include \
+>   --unix-socket /var/run/tailscale/tailscaled.sock \
+>   http://no-op-host.invalid/localapi/v0/status?peers=false
+`
+)
+
 // ReadAPIKey reads a Tailscale API key from file if the provided `apiKey`
-// is prefixed with `file:`. The assumption is that this value has been passed
+// is prefixed with `file:`. It is expected that this value has been passed
 // via a CLI flag such as `--api-key`.
 func ReadAPIKey(ctx context.Context, apiKey string) (string, error) {
 	if !strings.HasPrefix(apiKey, "file:") {
@@ -38,4 +52,33 @@ func ReadAPIKey(ctx context.Context, apiKey string) (string, error) {
 	}
 
 	return string(apiKeyBytes), nil
+}
+
+// DefaultTailnet attempts to determine the locally active Tailnet
+// via the local `tailscaled` API. If `tailnet` is already set, it will be
+// used without checking the default. It is expected that this value has been
+// passed via a CLI flag such as `--tailnet`.
+func DefaultTailnet(ctx context.Context, tailnet string) (string, error) {
+	if tailnet != "" {
+		return tailnet, nil
+	}
+
+	cli.DebugPrintf(ctx, debugCurlStatusWithoutPeers)
+	status, err := tailscale.StatusWithoutPeers(ctx)
+	if err != nil {
+		return "", nil
+	}
+
+	return getTailnet(status.MagicDNSSuffix)
+}
+
+// getTailnet parses a magic DNS suffix to determine the Tailnet name. The
+// assumption is that the magic DNS suffix is of the form
+// `{TAILNET}.beta.tailscale.net`.
+func getTailnet(magicDNSSuffix string) (string, error) {
+	if !strings.HasSuffix(magicDNSSuffix, ".beta.tailscale.net") {
+		return "", fmt.Errorf("bad %s", magicDNSSuffix)
+	}
+
+	return strings.TrimSuffix(magicDNSSuffix, ".beta.tailscale.net"), nil
 }

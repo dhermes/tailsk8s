@@ -32,6 +32,10 @@ func AuthorizeDevice(ctx context.Context, c Config) error {
 	if err != nil {
 		return err
 	}
+	c.APIConfig.Tailnet, err = tailscalecli.DefaultTailnet(ctx, c.APIConfig.Tailnet)
+	if err != nil {
+		return err
+	}
 
 	hostname := c.Hostname
 	if hostname == "" {

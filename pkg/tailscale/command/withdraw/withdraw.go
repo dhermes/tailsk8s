@@ -33,6 +33,10 @@ func WithdrawAndDisable(ctx context.Context, c Config) error {
 	if err != nil {
 		return err
 	}
+	c.APIConfig.Tailnet, err = tailscalecli.DefaultTailnet(ctx, c.APIConfig.Tailnet)
+	if err != nil {
+		return err
+	}
 
 	cidr, err := netaddr.ParseIPPrefix(c.IPv4CIDR)
 	if err != nil {

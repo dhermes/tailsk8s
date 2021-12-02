@@ -145,10 +145,7 @@ EOF
 tailscale-advertise \
   --debug \
   --api-key "file:${TAILSCALE_API_KEY_FILENAME}" \
-  --tailnet TODO \
   --cidr "${ADVERTISE_SUBNET}"
-####- TODO: I realized I can use `s, _ := tailscale.StatusWithoutPeers(); s.MagicDNSSuffix`
-####-       to infer the Tailnet
 
 ## Configure `kubeadm`
 

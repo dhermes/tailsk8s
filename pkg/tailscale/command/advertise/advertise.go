@@ -29,7 +29,12 @@ import (
 // added CIDR.
 func AdvertiseAndAccept(ctx context.Context, c Config) error {
 	var err error
+	// TODO: Move this into a `cloud.Config.Resolve(ctx)` method.
 	c.APIConfig.APIKey, err = tailscalecli.ReadAPIKey(ctx, c.APIConfig.APIKey)
+	if err != nil {
+		return err
+	}
+	c.APIConfig.Tailnet, err = tailscalecli.DefaultTailnet(ctx, c.APIConfig.Tailnet)
 	if err != nil {
 		return err
 	}

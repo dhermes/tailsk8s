@@ -48,7 +48,7 @@ func run() error {
 		&c.APIConfig.Tailnet,
 		"tailnet",
 		c.APIConfig.Tailnet,
-		"The Tailnet where the device exists",
+		"The Tailnet where the device exists; a value will be inferred via the local `tailscaled` API",
 	)
 	cmd.PersistentFlags().StringVar(
 		&c.APIConfig.APIKey,
@@ -70,7 +70,7 @@ func run() error {
 		"Enable extra print debugging",
 	)
 
-	required := []string{"tailnet", "api-key", "cidr"}
+	required := []string{"api-key", "cidr"}
 	for _, name := range required {
 		err := cobra.MarkFlagRequired(cmd.PersistentFlags(), name)
 		if err != nil {
