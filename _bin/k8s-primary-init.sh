@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Usage:
-#  ./k8s-primary-init.sh CLUSTER_NAME POD_SUBNET SERVICE_SUBNET ADVERTISE_SUBNET CONTROL_PLANE_LOAD_BALANCER CONFIG_TEMPLATE_FILENAME TAILSCALE_API_KEY_FILENAME
+#  ./k8s-primary-init.sh CLUSTER_NAME POD_SUBNET SERVICE_SUBNET ADVERTISE_SUBNET CONTROL_PLANE_LOAD_BALANCER
 # Initializes a Kubernetes cluster on the "primary" control plane node. This
 # node is special at cluster creation time because the cluster doesn't exist
 # yet, but once the cluster exists, the "primary" node can be removed without
@@ -29,9 +29,9 @@ set -e -x
 
 ## Validate and read inputs
 
-if [ "${#}" -ne 7 ]
+if [ "${#}" -ne 5 ]
 then
-  echo "Usage: ./k8s-primary-init.sh CLUSTER_NAME POD_SUBNET SERVICE_SUBNET ADVERTISE_SUBNET CONTROL_PLANE_LOAD_BALANCER CONFIG_TEMPLATE_FILENAME TAILSCALE_API_KEY_FILENAME" >&2
+  echo "Usage: ./k8s-primary-init.sh CLUSTER_NAME POD_SUBNET SERVICE_SUBNET ADVERTISE_SUBNET CONTROL_PLANE_LOAD_BALANCER" >&2
   exit 1
 fi
 CLUSTER_NAME="${1}"
@@ -39,15 +39,15 @@ POD_SUBNET="${2}"
 SERVICE_SUBNET="${3}"
 ADVERTISE_SUBNET="${4}"
 CONTROL_PLANE_LOAD_BALANCER="${5}"
-CONFIG_TEMPLATE_FILENAME="${6}"
-TAILSCALE_API_KEY_FILENAME="${7}"
 
 ## Computed Variables
 
 CURRENT_HOSTNAME="$(hostname)"
-K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
 OWNER_GROUP="$(id --user):$(id --group)"
 HOST_IP="$(tailscale ip -4)"
+K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
+TAILSCALE_API_KEY_FILENAME="${K8S_BOOTSTRAP_DIR}/tailscale-api-key.txt"
+CONFIG_TEMPLATE_FILENAME="${K8S_BOOTSTRAP_DIR}/kubeadm-init-config.yaml"
 
 ## Ensure `kubeadm-init-config.yaml` template file exists
 
@@ -142,8 +142,8 @@ echo "Populating \`kubeadm\` configuration via template:"
 echo '================================================'
 cat "${CONFIG_TEMPLATE_FILENAME}"
 
-JOIN_TOKEN="${JOIN_TOKEN}" \
-  CERTIFICATE_KEY="${CERTIFICATE_KEY}" \
+CERTIFICATE_KEY="${CERTIFICATE_KEY}" \
+  JOIN_TOKEN="${JOIN_TOKEN}" \
   CLUSTER_NAME="${CLUSTER_NAME}" \
   POD_SUBNET="${POD_SUBNET}" \
   SERVICE_SUBNET="${SERVICE_SUBNET}" \
