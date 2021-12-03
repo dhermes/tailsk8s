@@ -48,7 +48,7 @@ func run() error {
 		&c.APIConfig.Tailnet,
 		"tailnet",
 		c.APIConfig.Tailnet,
-		"The Tailnet where the device exists; a value will be inferred via the local `tailscaled` API",
+		"The Tailnet where the device exists; a value will be inferred via the local 'tailscaled' API",
 	)
 	cmd.PersistentFlags().StringVar(
 		&c.APIConfig.APIKey,
