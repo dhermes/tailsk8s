@@ -48,7 +48,6 @@ pedantic-yonath   Ready    control-plane,master   25s   v1.22.4
 dhermes@pedantic-yonath:~$
 dhermes@pedantic-yonath:~$ rm k8s-primary-init.sh
 dhermes@pedantic-yonath:~$ ls -1 /var/data/tailsk8s-bootstrap/
-advertise-subnet.txt
 ca-cert-hash.txt
 certificate-key.txt
 cluster-name.txt
@@ -65,14 +64,12 @@ Connection to pedantic-yonath closed.
 $
 $
 $ scp dhermes@pedantic-yonath:/var/data/tailsk8s-bootstrap/*.txt k8s-bootstrap-shared/
-advertise-subnet.txt                               100%   14     1.7KB/s   00:00
 ca-cert-hash.txt                                   100%   65     9.7KB/s   00:00
 certificate-key.txt                                100%   65     6.9KB/s   00:00
 cluster-name.txt                                   100%   11     1.3KB/s   00:00
 control-plane-load-balancer.txt                    100%   15     1.9KB/s   00:00
 join-token.txt                                     100%   24     3.6KB/s   00:00
 k8s-bootstrap-shared//tailscale-api-key.txt: Permission denied
-$ rm --force k8s-bootstrap-shared/advertise-subnet.txt
 $ scp dhermes@pedantic-yonath:/var/data/tailsk8s-bootstrap/kube-config.yaml k8s-bootstrap-shared/
 kube-config.yaml                                   100% 5642   368.1KB/s   00:00
 ```
@@ -131,7 +128,6 @@ eager-jennings    Ready    control-plane,master   2m34s   v1.22.4   100.109.83.2
 pedantic-yonath   Ready    control-plane,master   19m     v1.22.4   100.110.217.104   <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
 dhermes@eager-jennings:~$ rm k8s-control-plane-join.sh
 dhermes@eager-jennings:~$ ls -1 /var/data/tailsk8s-bootstrap/
-advertise-subnet.txt
 ca-cert-hash.txt
 certificate-key.txt
 cluster-name.txt

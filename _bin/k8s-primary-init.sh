@@ -79,10 +79,6 @@ chmod 444 "${K8S_BOOTSTRAP_DIR}/cluster-name.txt"
 echo "${CONTROL_PLANE_LOAD_BALANCER}" > "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 
-rm --force "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
-echo "${ADVERTISE_SUBNET}" > "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
-chmod 444 "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
-
 ## Computed Variables Part Two (After Writing to ${K8S_BOOTSTRAP_DIR})
 
 JOIN_TOKEN="$(cat "${K8S_BOOTSTRAP_DIR}/join-token.txt")"

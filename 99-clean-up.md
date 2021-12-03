@@ -20,7 +20,6 @@ $ ssh dhermes@relaxed-bouman
 dhermes@relaxed-bouman:~$ sudo mv tailscale-withdraw-linux-amd64-* /usr/local/bin/tailscale-withdraw
 [sudo] password for dhermes:
 dhermes@relaxed-bouman:~$ ls -1 /var/data/tailsk8s-bootstrap/
-advertise-subnet.txt
 ca-cert-hash.txt
 certificate-key.txt
 cluster-name.txt

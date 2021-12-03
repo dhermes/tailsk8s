@@ -59,7 +59,6 @@ nice-mcclintock   Ready    <none>                 61s   v1.22.4   100.70.213.118
 pedantic-yonath   Ready    control-plane,master   27m   v1.22.4   100.110.217.104   <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
 dhermes@nice-mcclintock:~$ rm k8s-worker-join.sh
 dhermes@nice-mcclintock:~$ ls -1 /var/data/tailsk8s-bootstrap/
-advertise-subnet.txt
 ca-cert-hash.txt
 certificate-key.txt
 cluster-name.txt
@@ -135,7 +134,6 @@ pedantic-yonath   Ready    control-plane,master   32m     v1.22.4   100.110.217.
 relaxed-bouman    Ready    <none>                 56s     v1.22.4   100.122.162.98    <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
 dhermes@relaxed-bouman:~$ rm k8s-worker-join.sh
 dhermes@relaxed-bouman:~$ ls -1 /var/data/tailsk8s-bootstrap/
-advertise-subnet.txt
 ca-cert-hash.txt
 certificate-key.txt
 cluster-name.txt
