@@ -44,6 +44,7 @@ Usage:
 Logos Attributions:
 - https://github.com/cncf/artwork/tree/master/projects/kubernetes
 - https://tailscale.com/files/dist/tailscale-press-kit.zip
+- https://cncf-branding.netlify.app/projects/kubernetes/ (#326ce5 is k8s Blue)
 -->
 
 [1]: https://pkg.go.dev/badge/github.com/dhermes/tailsk8s.svg
