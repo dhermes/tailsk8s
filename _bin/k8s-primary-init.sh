@@ -79,6 +79,7 @@ chmod 444 "${K8S_BOOTSTRAP_DIR}/cluster-name.txt"
 echo "${CONTROL_PLANE_LOAD_BALANCER}" > "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 
+rm --force "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
 echo "${ADVERTISE_SUBNET}" > "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
 
@@ -169,6 +170,12 @@ mkdir --parents "${HOME}/.kube"
 
 sudo cp /etc/kubernetes/admin.conf "${HOME}/.kube/config"
 sudo chown "${OWNER_GROUP}" "${HOME}/.kube/config"
+
+## Label the newly added node with `tailsk8s`` label(s)
+
+kubectl label node \
+  "${CURRENT_HOSTNAME}" \
+  "tailsk8s.io/advertise-subnet=${ADVERTISE_SUBNET}"
 
 ## Kubernetes Cluster Bootstrap (After)
 #### See: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-join/#token-based-discovery-with-ca-pinning

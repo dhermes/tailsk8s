@@ -13,7 +13,7 @@ control-plane-load-balancer.txt                    100%   15     0.9KB/s   00:00
 join-token.txt                                     100%   24     8.4KB/s   00:00
 kube-config.yaml                                   100% 5642   275.1KB/s   00:00
 tailscale-api-key.txt                              100%   40    13.4KB/s   00:00
-$ scp _templates/* dhermes@nice-mcclintock:/var/data/tailsk8s-bootstrap/
+$ scp _templates/kubeadm* dhermes@nice-mcclintock:/var/data/tailsk8s-bootstrap/
 kubeadm-control-plane-join-config.yaml             100%  996   353.9KB/s   00:00
 kubeadm-init-config.yaml                           100% 1276   163.3KB/s   00:00
 kubeadm-worker-join-config.yaml                    100%  873   206.2KB/s   00:00
@@ -88,7 +88,7 @@ control-plane-load-balancer.txt                    100%   15     1.3KB/s   00:00
 join-token.txt                                     100%   24     0.8KB/s   00:00
 kube-config.yaml                                   100% 5642   461.5KB/s   00:00
 tailscale-api-key.txt                              100%   40     5.3KB/s   00:00
-$ scp _templates/* dhermes@relaxed-bouman:/var/data/tailsk8s-bootstrap/
+$ scp _templates/kubeadm* dhermes@relaxed-bouman:/var/data/tailsk8s-bootstrap/
 kubeadm-control-plane-join-config.yaml             100%  996    85.9KB/s   00:00
 kubeadm-init-config.yaml                           100% 1276   104.5KB/s   00:00
 kubeadm-worker-join-config.yaml                    100%  873   115.5KB/s   00:00

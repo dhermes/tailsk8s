@@ -47,6 +47,7 @@ rm --force --recursive "${HOME}/.kube"
 mkdir --parents "${HOME}/.kube"
 cp "${K8S_BOOTSTRAP_DIR}/kube-config.yaml" "${HOME}/.kube/config"
 
+rm --force "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
 echo "${ADVERTISE_SUBNET}" > "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
 
@@ -118,6 +119,12 @@ CA_CERT_HASH="${CA_CERT_HASH}" \
 
 sudo kubeadm join \
   --config "${HOME}/kubeadm-join-config.yaml"
+
+## Label the newly added node with `tailsk8s`` label(s)
+
+kubectl label node \
+  "${CURRENT_HOSTNAME}" \
+  "tailsk8s.io/advertise-subnet=${ADVERTISE_SUBNET}"
 
 ## Clean up temporary files
 
