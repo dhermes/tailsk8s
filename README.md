@@ -12,6 +12,8 @@
   i.e. not running in someone else's data center. The expectation is that the
   reader has physical possession of a bare metal machine and can manually
   administer if e.g. networking or power completely fail
+- **Jump Host**: the primary computer being used to administer all of the
+  machines in the cluster
 
 ## References, Documentation and Motivation
 

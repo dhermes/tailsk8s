@@ -30,7 +30,7 @@ then
 fi
 NETCAT_LISTEN_PORT="${1}"
 
-## Install all APT packages needed
+## Install All APT Packages Needed
 #### - `netcat` for using a raw TCP listener
 #### - SSH client and server (should already be present from previous steps)
 #### - `ubuntu-server` (if need be); some of the bare metal servers may be
@@ -43,7 +43,7 @@ sudo apt-get install --yes \
   openssh-server \
   ubuntu-server
 
-## Disable SSH Password Authentication and restart SSH server
+## Disable SSH Password Authentication and Restart SSH Server
 
 sudo sed --in-place "s/.*PasswordAuthentication.*//g" /etc/ssh/sshd_config
 cat <<EOF | sudo tee --append /etc/ssh/sshd_config
@@ -52,7 +52,7 @@ EOF
 
 sudo systemctl restart sshd.service
 
-## Receive authorized key(s) from a peer on the local network
+## Receive Authorized Key(s) from a Peer on the Local Network
 
 echo "Please send authorized keys to raw TCP listener on port ${NETCAT_LISTEN_PORT}"
 echo "The list of all known IP addresses for this host is:"
@@ -61,8 +61,9 @@ hostname --all-ip-addresses
 echo "Please send authorized keys to raw TCP listener on port ${NETCAT_LISTEN_PORT}"
 echo thanks | netcat -l "${NETCAT_LISTEN_PORT}" -b > "${HOME}/.extra_authorized_keys"
 
-## Add extra authorized key(s) to SSH. In order to ensure the keys received
-## over the local network are legitimate, a prompt will be used first.
+## Add Extra Authorized Key(s) to SSH.
+#### NOTE: In order to ensure the keys received over the local network are
+####       legitimate, a prompt will be used first.
 
 echo "Received extra \`authorized_keys\`:"
 echo '================================='
