@@ -4,6 +4,8 @@
 
 [![Go Reference][1]][2]
 
+![tailsk8s Logos][9]
+
 ## Terms and Definitions
 
 - **Bare Metal**: this is primarily intended to mean "**not** virtualized",
@@ -38,6 +40,12 @@ Usage:
 
 ```
 
+<!--
+Logos Attributions:
+- https://github.com/cncf/artwork/tree/master/projects/kubernetes
+- https://tailscale.com/files/dist/tailscale-press-kit.zip
+-->
+
 [1]: https://pkg.go.dev/badge/github.com/dhermes/tailsk8s.svg
 [2]: https://pkg.go.dev/github.com/dhermes/tailsk8s
 [3]: https://github.com/kelseyhightower/kubernetes-the-hard-way/tree/79a3f79b27bd28f82f071bb877a266c2e62ee506
@@ -46,3 +54,4 @@ Usage:
 [6]: https://medium.com/@aleverycity/kubeadm-init-join-and-externalip-vs-internalip-519519ddff89
 [7]: https://github.com/alaslums
 [8]: https://linkedin.com/in/layachi-khodja-38428a1
+[9]: _images/tailsk8s-logos.png
