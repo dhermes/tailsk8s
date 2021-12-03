@@ -8,7 +8,6 @@ k8s-worker-join.sh                                 100% 3532   385.3KB/s   00:00
 $ scp k8s-bootstrap-shared/* dhermes@nice-mcclintock:/var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt                                   100%   65    14.1KB/s   00:00
 certificate-key.txt                                100%   65    23.8KB/s   00:00
-cluster-name.txt                                   100%   11     3.2KB/s   00:00
 control-plane-load-balancer.txt                    100%   15     0.9KB/s   00:00
 join-token.txt                                     100%   24     8.4KB/s   00:00
 kube-config.yaml                                   100% 5642   275.1KB/s   00:00
@@ -26,7 +25,6 @@ dhermes@nice-mcclintock:~$ sudo mv tailscale-advertise-linux-amd64-* /usr/local/
 dhermes@nice-mcclintock:~$ ls -1 /var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt
 certificate-key.txt
-cluster-name.txt
 control-plane-load-balancer.txt
 join-token.txt
 kubeadm-control-plane-join-config.yaml
@@ -61,7 +59,6 @@ dhermes@nice-mcclintock:~$ rm k8s-worker-join.sh
 dhermes@nice-mcclintock:~$ ls -1 /var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt
 certificate-key.txt
-cluster-name.txt
 control-plane-load-balancer.txt
 join-token.txt
 kubeadm-control-plane-join-config.yaml
@@ -82,7 +79,6 @@ k8s-worker-join.sh                                 100% 3532   179.6KB/s   00:00
 $ scp k8s-bootstrap-shared/* dhermes@relaxed-bouman:/var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt                                   100%   65     2.8KB/s   00:00
 certificate-key.txt                                100%   65     8.3KB/s   00:00
-cluster-name.txt                                   100%   11     0.5KB/s   00:00
 control-plane-load-balancer.txt                    100%   15     1.3KB/s   00:00
 join-token.txt                                     100%   24     0.8KB/s   00:00
 kube-config.yaml                                   100% 5642   461.5KB/s   00:00
@@ -100,7 +96,6 @@ dhermes@relaxed-bouman:~$ sudo mv tailscale-advertise-linux-amd64-* /usr/local/b
 dhermes@relaxed-bouman:~$ ls -1 /var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt
 certificate-key.txt
-cluster-name.txt
 control-plane-load-balancer.txt
 join-token.txt
 kubeadm-control-plane-join-config.yaml
@@ -136,7 +131,6 @@ dhermes@relaxed-bouman:~$ rm k8s-worker-join.sh
 dhermes@relaxed-bouman:~$ ls -1 /var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt
 certificate-key.txt
-cluster-name.txt
 control-plane-load-balancer.txt
 join-token.txt
 kubeadm-control-plane-join-config.yaml

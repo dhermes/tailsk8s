@@ -50,7 +50,6 @@ dhermes@pedantic-yonath:~$ rm k8s-primary-init.sh
 dhermes@pedantic-yonath:~$ ls -1 /var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt
 certificate-key.txt
-cluster-name.txt
 control-plane-load-balancer.txt
 join-token.txt
 kubeadm-control-plane-join-config.yaml
@@ -66,7 +65,6 @@ $
 $ scp dhermes@pedantic-yonath:/var/data/tailsk8s-bootstrap/*.txt k8s-bootstrap-shared/
 ca-cert-hash.txt                                   100%   65     9.7KB/s   00:00
 certificate-key.txt                                100%   65     6.9KB/s   00:00
-cluster-name.txt                                   100%   11     1.3KB/s   00:00
 control-plane-load-balancer.txt                    100%   15     1.9KB/s   00:00
 join-token.txt                                     100%   24     3.6KB/s   00:00
 k8s-bootstrap-shared//tailscale-api-key.txt: Permission denied
@@ -82,7 +80,6 @@ k8s-control-plane-join.sh                          100% 3735   485.9KB/s   00:00
 $ scp k8s-bootstrap-shared/* dhermes@eager-jennings:/var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt                                   100%   65     6.1KB/s   00:00
 certificate-key.txt                                100%   65     8.8KB/s   00:00
-cluster-name.txt                                   100%   11     1.6KB/s   00:00
 control-plane-load-balancer.txt                    100%   15     3.0KB/s   00:00
 join-token.txt                                     100%   24     2.9KB/s   00:00
 kube-config.yaml                                   100% 5642   996.5KB/s   00:00
@@ -99,7 +96,6 @@ dhermes@eager-jennings:~$ sudo mv tailscale-advertise-linux-amd64-* /usr/local/b
 dhermes@eager-jennings:~$ ls -1 /var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt
 certificate-key.txt
-cluster-name.txt
 control-plane-load-balancer.txt
 join-token.txt
 kubeadm-control-plane-join-config.yaml
@@ -130,7 +126,6 @@ dhermes@eager-jennings:~$ rm k8s-control-plane-join.sh
 dhermes@eager-jennings:~$ ls -1 /var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt
 certificate-key.txt
-cluster-name.txt
 control-plane-load-balancer.txt
 join-token.txt
 kubeadm-control-plane-join-config.yaml

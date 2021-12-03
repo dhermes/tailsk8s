@@ -73,9 +73,6 @@ chmod 400 "${K8S_BOOTSTRAP_DIR}/join-token.txt"
 kubeadm certs certificate-key > "${K8S_BOOTSTRAP_DIR}/certificate-key.txt"
 chmod 400 "${K8S_BOOTSTRAP_DIR}/certificate-key.txt"
 
-echo "${CLUSTER_NAME}" > "${K8S_BOOTSTRAP_DIR}/cluster-name.txt"
-chmod 444 "${K8S_BOOTSTRAP_DIR}/cluster-name.txt"
-
 echo "${CONTROL_PLANE_LOAD_BALANCER}" > "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 

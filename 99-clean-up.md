@@ -22,7 +22,6 @@ dhermes@relaxed-bouman:~$ sudo mv tailscale-withdraw-linux-amd64-* /usr/local/bi
 dhermes@relaxed-bouman:~$ ls -1 /var/data/tailsk8s-bootstrap/
 ca-cert-hash.txt
 certificate-key.txt
-cluster-name.txt
 control-plane-load-balancer.txt
 join-token.txt
 kubeadm-control-plane-join-config.yaml
