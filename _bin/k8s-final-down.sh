@@ -14,13 +14,49 @@
 # limitations under the License.
 
 # Usage:
-#  ./k8s-final-down.sh NAMED_ARG1 NAMED_ARG2 ...
-# Removes the **final** node during teardown of a Kubernetes cluster. Does so by
-# - running `kubeadm reset`
-# - de-registering a Kubernetes-owned CIDR in the Tailnet
-# - removing cluster bootstrap configurations (e.g. the `kubeadm` join token)
+#  ./k8s-final-down.sh
+# Removes the **final** node during teardown of a Kubernetes cluster. See
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#tear-down
+# We don't drain node or `kubectl delete node` here because this is the last
+# node being reset.
 
 set -e -x
 
-echo "Not implemented" >&2
-exit 1
+## Validate and read inputs
+
+if [ "${#}" -ne 0 ]
+then
+  echo "Usage: ./k8s-final-down.sh" >&2
+  exit 1
+fi
+
+## Computed Variables
+
+OWNER_GROUP="$(id --user):$(id --group)"
+K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
+TAILSCALE_API_KEY_FILENAME="${K8S_BOOTSTRAP_DIR}/tailscale-api-key.txt"
+ADVERTISE_SUBNET="$(cat "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt")"
+
+## Run `kubeadm reset`
+
+sudo systemctl disable --now kubelet
+sudo kubeadm reset --force
+
+## Withdraw route managed by this node from Tailnet
+
+sudo tailscale-withdraw \
+  --debug \
+  --api-key "file:${TAILSCALE_API_KEY_FILENAME}" \
+  --cidr "${ADVERTISE_SUBNET}"
+
+## Fully remove Kubernetes configuration directores
+
+rm --force --recursive "${HOME}/.kube"
+sudo rm --force --recursive /etc/cni/net.d/
+sudo rm --force --recursive /etc/kubernetes/
+
+## Clear Kubernetes bootstrap directory
+
+sudo rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
+sudo mkdir --parents "${K8S_BOOTSTRAP_DIR}"
+sudo chown "${OWNER_GROUP}" "${K8S_BOOTSTRAP_DIR}"
