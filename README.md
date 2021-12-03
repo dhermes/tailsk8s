@@ -12,8 +12,6 @@
   i.e. not running in someone else's data center. The expectation is that the
   reader has physical possession of a bare metal machine and can manually
   administer if e.g. networking or power completely fail
-- **Jump Host**: the primary computer being used to administer all of the
-  machines in the cluster
 
 ## References, Documentation and Motivation
 
@@ -50,6 +48,8 @@ Logos and Images Attributions:
 - https://d1.awsstatic.com/security-center/AWS_OurDataCenters_Background.9278804e149ad9d42145f1dc04576f9029835216.jpg
 - https://cloudplatform.googleblog.com/2015/10/Bringing-Google-Cloud-Platform-closer-to-more-people-and-businesses.html
 - https://4.bp.blogspot.com/-qX68nzxqXZY/VpQBii6sxLI/AAAAAAAACPE/gVkqXRRXfVA/s640/datacenter%2B10-1.png
+- https://usesthis.com/interviews/rob.pike/
+- https://usesthis.com/images/interviews/rob.pike/portrait.jpg
 -->
 
 [1]: https://pkg.go.dev/badge/github.com/dhermes/tailsk8s.svg
