@@ -67,9 +67,6 @@ fi
 
 ## Kubernetes Cluster Bootstrap (Before)
 
-rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
-mkdir --parents "${K8S_BOOTSTRAP_DIR}"
-
 kubeadm token generate > "${K8S_BOOTSTRAP_DIR}/join-token.txt"
 chmod 400 "${K8S_BOOTSTRAP_DIR}/join-token.txt"
 

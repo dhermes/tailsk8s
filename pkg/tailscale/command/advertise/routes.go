@@ -59,6 +59,8 @@ func AcceptNewCIDR(ctx context.Context, c cloud.Config, cidr netaddr.IPPrefix, h
 	// or it could be the result of a race condition (i.e. this request is made
 	// **before** the newly advertised CIDR is acknowledged by the Tailscale
 	// control plane).
+	// TODO: This race condition has been encountered in the wild, implement
+	//       retry / backoff / sleep.
 	if !RoutesContain(rr.AdvertisedRoutes, cidr) {
 		return fmt.Errorf("new route (%s) is not among list of advertised routes", cidr)
 	}

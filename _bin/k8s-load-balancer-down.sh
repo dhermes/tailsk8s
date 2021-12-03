@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2021 Danny Hermes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,20 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: kubeadm.k8s.io/v1beta3
-kind: JoinConfiguration
-discovery:
-  bootstrapToken:
-    apiServerEndpoint: ${CONTROL_PLANE_LOAD_BALANCER}:6443
-    token: ${JOIN_TOKEN}
-    caCertHashes:
-    - ${CA_CERT_HASH}
-nodeRegistration:
-  name: ${NODE_NAME}
-  kubeletExtraArgs:
-    node-ip: ${HOST_IP}
-controlPlane:
-  localAPIEndpoint:
-    advertiseAddress: ${HOST_IP}
-    bindPort: 6443
-  certificateKey: ${CERTIFICATE_KEY}
+# Usage:
+#  ./k8s-load-balancer-down.sh
+# Disables and stops HAProxy load balancer and cleans up any specialized
+# configs.
+
+set -e -x
+
+echo "Not implemented" >&2
+exit 1
