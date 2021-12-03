@@ -14,15 +14,60 @@
 # limitations under the License.
 
 # Usage:
-#  ./k8s-node-down.sh NAMED_ARG1 NAMED_ARG2 ...
-# Removes a node from a Kubernetes cluster. Does so by
-# - draining the node
-# - turning off kubelet and running `kubeadm reset`
-# - deleting the node
-# - de-registering a Kubernetes-owned CIDR in the Tailnet
-# - removing the Kubernetes admin config
+#  ./k8s-node-down.sh
+# Removes a node from a Kubernetes cluster. See
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#tear-down
 
 set -e -x
 
-echo "Not implemented" >&2
-exit 1
+## Validate and read inputs
+
+if [ "${#}" -ne 0 ]
+then
+  echo "Usage: ./k8s-node-down.sh" >&2
+  exit 1
+fi
+
+## Computed Variables
+
+CURRENT_HOSTNAME="$(hostname)"
+OWNER_GROUP="$(id --user):$(id --group)"
+K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
+TAILSCALE_API_KEY_FILENAME="${K8S_BOOTSTRAP_DIR}/tailscale-api-key.txt"
+ADVERTISE_SUBNET="$(cat "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt")"
+
+## Drain Node
+
+kubectl drain \
+  "${CURRENT_HOSTNAME}" \
+  --delete-emptydir-data \
+  --force \
+  --ignore-daemonsets
+
+## Run `kubeadm reset`
+
+sudo systemctl disable --now kubelet
+sudo kubeadm reset --force
+
+## Remove the Node from Kubernetes
+
+kubectl delete node "${CURRENT_HOSTNAME}"
+
+## Withdraw route managed by this node from Tailnet
+
+sudo tailscale-withdraw \
+  --debug \
+  --api-key "file:${TAILSCALE_API_KEY_FILENAME}" \
+  --cidr "${ADVERTISE_SUBNET}"
+
+## Fully remove Kubernetes configuration directores
+
+rm --force --recursive "${HOME}/.kube"
+sudo rm --force --recursive /etc/cni/net.d/
+sudo rm --force --recursive /etc/kubernetes/
+
+## Clear Kubernetes bootstrap directory
+
+sudo rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
+sudo mkdir --parents "${K8S_BOOTSTRAP_DIR}"
+sudo chown "${OWNER_GROUP}" "${K8S_BOOTSTRAP_DIR}"

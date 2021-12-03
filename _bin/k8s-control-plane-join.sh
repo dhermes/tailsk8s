@@ -49,6 +49,9 @@ rm --force --recursive "${HOME}/.kube"
 mkdir --parents "${HOME}/.kube"
 cp "${K8S_BOOTSTRAP_DIR}/kube-config.yaml" "${HOME}/.kube/config"
 
+echo "${ADVERTISE_SUBNET}" > "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
+chmod 444 "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
+
 ## CNI via Kubenet (basic bridge mode)
 #### See:
 #### - https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/79a3f79b27bd28f82f071bb877a266c2e62ee506/docs/09-bootstrapping-kubernetes-workers.md#configure-cni-networking
@@ -91,9 +94,9 @@ cat <<EOF | sudo tee /etc/cni/net.d/99-loopback.conf
 }
 EOF
 
-## Advertise routes managed by this node to Tailnet
+## Advertise route managed by this node to Tailnet
 
-tailscale-advertise \
+sudo tailscale-advertise \
   --debug \
   --api-key "file:${TAILSCALE_API_KEY_FILENAME}" \
   --cidr "${ADVERTISE_SUBNET}"

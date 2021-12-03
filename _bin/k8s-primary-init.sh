@@ -82,6 +82,9 @@ chmod 444 "${K8S_BOOTSTRAP_DIR}/cluster-name.txt"
 echo "${CONTROL_PLANE_LOAD_BALANCER}" > "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 
+echo "${ADVERTISE_SUBNET}" > "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
+chmod 444 "${K8S_BOOTSTRAP_DIR}/advertise-subnet.txt"
+
 ## Computed Variables Part Two (After Writing to ${K8S_BOOTSTRAP_DIR})
 
 JOIN_TOKEN="$(cat "${K8S_BOOTSTRAP_DIR}/join-token.txt")"
@@ -131,7 +134,7 @@ EOF
 
 ## Advertise routes managed by this node to Tailnet
 
-tailscale-advertise \
+sudo tailscale-advertise \
   --debug \
   --api-key "file:${TAILSCALE_API_KEY_FILENAME}" \
   --cidr "${ADVERTISE_SUBNET}"

@@ -34,6 +34,7 @@ TAILSCALE_AUTHKEY_FILENAME="${1}"
 
 CURRENT_USER="$(whoami)"
 CURRENT_HOSTNAME="$(hostname)"
+OWNER_GROUP="$(id --user):$(id --group)"
 K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
 
 ## Ensure Tailscale Auth Key file exists
@@ -124,8 +125,9 @@ sudo usermod --append --groups docker "${CURRENT_USER}"
 
 ## Prepare configuration bootstrap directory
 
-rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
-mkdir --parents "${K8S_BOOTSTRAP_DIR}"
+sudo rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
+sudo mkdir --parents "${K8S_BOOTSTRAP_DIR}"
+sudo chown "${OWNER_GROUP}" "${K8S_BOOTSTRAP_DIR}"
 
 ## Join Tailnet and remove the Tailscale Auth Key.
 #### NOTE: For Tailnets where new devices must be manually authorized, the
