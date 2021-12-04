@@ -85,6 +85,7 @@ sudo chmod +x {kubeadm,kubelet,kubectl}
 
 ## Install standard CNI plugins
 
+sudo rm --force --recursive /opt/cni/bin
 sudo mkdir --parents /opt/cni/bin
 curl --location \
   "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz" \
