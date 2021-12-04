@@ -27,7 +27,9 @@ were both limiting.)
 
 ## Load Balancer
 
-![nice-mcclintock][7]
+<p align="center">
+  <img src="../_images/nice-mcclintock.jpg?raw=true" />
+</p>
 
 ## Control Plane
 
