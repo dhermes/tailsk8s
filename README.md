@@ -4,7 +4,9 @@
 
 [![Go Reference][1]][2]
 
-![tailsk8s Logos][9]
+<p align="center">
+  <img src="./_images/tailsk8s-logos.png?raw=true" />
+</p>
 
 ## Terms and Definitions
 
@@ -60,4 +62,3 @@ Logos and Images Attributions:
 [6]: https://medium.com/@aleverycity/kubeadm-init-join-and-externalip-vs-internalip-519519ddff89
 [7]: https://github.com/alaslums
 [8]: https://linkedin.com/in/layachi-khodja-38428a1
-[9]: _images/tailsk8s-logos.png
