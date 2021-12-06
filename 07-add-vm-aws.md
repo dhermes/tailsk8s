@@ -8,7 +8,7 @@ than joining the Tailnet.
 
 In order to be **slightly** paranoid, we'll use parts of the "20-bit block"
 (`172.16.0.0/12`) in the AWS VPC to avoid any accidental collision with our
-chunk of the 24-bit block (`10.0.0.0/8`).
+chunk of the "24-bit block" (`10.0.0.0/8`).
 
 ## Provision All AWS Resources
 
