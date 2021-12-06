@@ -286,7 +286,7 @@ rm ./k8s-control-plane-join.sh
 > ```
 >
 > This can be avoided by using a larger instance type (e.g. `t3.medium`) or
-> By using `--ignore-preflight-errors Mem` when invoking `kubeadm join` in
+> by using `--ignore-preflight-errors Mem` when invoking `kubeadm join` in
 > `k8s-control-plane-join.sh`.
 
 ## Validate Cluster after Joining
