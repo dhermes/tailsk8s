@@ -24,7 +24,7 @@ set -e -x
 
 ## Validate and read inputs
 
-if [ "${#}" -ne 1 ]
+if [ "${#}" -ne 2 ]
 then
   echo "Usage: ./bootstrap-ssh-cloud-provider.sh DESIRED_HOSTNAME EXTRA_AUTHORIZED_KEYS_FILENAME" >&2
   exit 1

@@ -168,7 +168,7 @@ sudo chown "${OWNER_GROUP}" "${HOME}/.kube/config"
 
 kubectl label node \
   "${CURRENT_HOSTNAME}" \
-  "tailsk8s.io/advertise-subnet=${ADVERTISE_SUBNET}"
+  "tailsk8s.io/advertise-subnet=${ADVERTISE_SUBNET/\//__}"
 
 ## Kubernetes Cluster Bootstrap (After)
 #### See: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-join/#token-based-discovery-with-ca-pinning

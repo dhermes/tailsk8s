@@ -123,7 +123,7 @@ sudo kubeadm join \
 
 kubectl label node \
   "${CURRENT_HOSTNAME}" \
-  "tailsk8s.io/advertise-subnet=${ADVERTISE_SUBNET}"
+  "tailsk8s.io/advertise-subnet=${ADVERTISE_SUBNET/\//__}"
 
 ## Clean up temporary files
 

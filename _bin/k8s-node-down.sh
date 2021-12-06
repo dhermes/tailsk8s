@@ -34,7 +34,8 @@ CURRENT_HOSTNAME="$(hostname)"
 OWNER_GROUP="$(id --user):$(id --group)"
 K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
 TAILSCALE_API_KEY_FILENAME="${K8S_BOOTSTRAP_DIR}/tailscale-api-key.txt"
-ADVERTISE_SUBNET="$(kubectl get node "${CURRENT_HOSTNAME}" --output jsonpath='{.metadata.labels.tailsk8s.io/advertise-subnet}')"
+ADVERTISE_SUBNET_NORMALIZED="$(kubectl get node "${CURRENT_HOSTNAME}" --output go-template='{{ index .metadata.labels "tailsk8s.io/advertise-subnet" }}')"
+ADVERTISE_SUBNET="${ADVERTISE_SUBNET_NORMALIZED/__/\/}"
 
 ## Drain Node
 
