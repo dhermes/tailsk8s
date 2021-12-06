@@ -2,6 +2,15 @@
 
 ## Bare Metal
 
+When a **single** node is leaving the Kubernetes cluster, the process looks
+exactly the same and is encoded in `k8s-node-down.sh`. When the **last**
+node leaves the cluster, i.e. the entire cluster is being torn down, there
+is a modified `k8s-final-down.sh`. In addition to Kubernetes nodes, we also
+brought up a bare metal load balance, so there is a `k8s-load-balancer-down.sh`
+script to turn that down as well.
+
+### Most Nodes
+
 From the jump host make sure the teardown scripts are present and SSH onto
 the Kubernetes node to complete the task:
 
@@ -47,6 +56,54 @@ Once back on the jump host, confirm the node was removed from the cluster:
 
 ```bash
 kubectl --kubeconfig k8s-bootstrap-shared/kube-config.yaml get nodes --output wide
+```
+
+### **Last** Nodes
+
+From the jump host make sure the teardown scripts are present and SSH onto
+the Kubernetes node to complete the task:
+
+```bash
+TAILSCALE_DEVICE_NAME=pedantic-yonath
+SSH_TARGET="dhermes@${TAILSCALE_DEVICE_NAME}"
+
+scp \
+  _bin/k8s-final-down.sh \
+  _bin/tailscale-withdraw-linux-amd64-* \
+  "${SSH_TARGET}":~/
+
+ssh "${SSH_TARGET}"
+```
+
+On the Kubernetes node, set up the teardown scripts and run them:
+
+```bash
+sudo mv tailscale-withdraw-linux-amd64-* /usr/local/bin/tailscale-withdraw
+./k8s-final-down.sh
+rm --force ./k8s-final-down.sh
+```
+
+### Load Balancer
+
+From the jump host make sure the teardown scripts are present and SSH onto
+the Kubernetes node to complete the task:
+
+```bash
+TAILSCALE_DEVICE_NAME=nice-mcclintock
+SSH_TARGET="dhermes@${TAILSCALE_DEVICE_NAME}"
+
+scp \
+  _bin/k8s-load-balancer-down.sh \
+  "${SSH_TARGET}":~/
+
+ssh "${SSH_TARGET}"
+```
+
+On the load balancer machine, set up the teardown scripts and run them:
+
+```bash
+./k8s-load-balancer-down.sh
+rm --force ./k8s-load-balancer-down.sh
 ```
 
 ## AWS EC2 VM
