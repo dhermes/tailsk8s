@@ -27,6 +27,7 @@ particularly helpful:
 - [rmb938/tailscale-cni][5] from Ryan Belgrave
 - [`kubeadm init/join` and ExternalIP vs InternalIP][6] from
   [Alasdair Lumsden][7]
+- [prabhatsharma/kubernetes-the-hard-way-aws][9] from Prabhat Sharma
 
 ## Development
 
@@ -62,3 +63,4 @@ Logos and Images Attributions:
 [6]: https://medium.com/@aleverycity/kubeadm-init-join-and-externalip-vs-internalip-519519ddff89
 [7]: https://github.com/alaslums
 [8]: https://linkedin.com/in/layachi-khodja-38428a1
+[9]: https://github.com/prabhatsharma/kubernetes-the-hard-way-aws/tree/c4872b83989562a35e9aba98ff92526a0f1498ca

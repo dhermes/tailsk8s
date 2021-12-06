@@ -1,61 +1,159 @@
 # Clean Up
 
+## Bare Metal
+
+From the jump host make sure the teardown scripts are present and SSH onto
+the Kubernetes node to complete the task:
+
+```bash
+TAILSCALE_DEVICE_NAME=relaxed-bouman
+SSH_TARGET="dhermes@${TAILSCALE_DEVICE_NAME}"
+
+scp \
+  _bin/k8s-node-down.sh \
+  _bin/k8s-uninstall.sh \
+  _bin/tailscale-withdraw-linux-amd64-* \
+  "${SSH_TARGET}":~/
+
+ssh "${SSH_TARGET}"
+```
+
+On the Kubernetes node, set up the teardown scripts and run them:
+
+```bash
+sudo mv tailscale-withdraw-linux-amd64-* /usr/local/bin/tailscale-withdraw
+
+# Configuration **before** teardown
+ls -1 /var/data/tailsk8s-bootstrap/
+kubectl get nodes
+
+./k8s-node-down.sh
+rm --force ./k8s-node-down.sh
+
+# Configuration **before** teardown
+ls -1 /var/data/tailsk8s-bootstrap/
+kubectl get nodes
+```
+
+If the machine will stay in service but has no need to be part of the
+Kubernetes cluster again:
+
+```bash
+./k8s-uninstall.sh
+rm --force ./k8s-uninstall.sh
+```
+
+Once back on the jump host, confirm the node was removed from the cluster:
+
+```bash
+kubectl --kubeconfig k8s-bootstrap-shared/kube-config.yaml get nodes --output wide
+```
+
 ## AWS EC2 VM
 
-Placeholder
+Since the VM in this demo is intended to be ephemeral, we can just destroy it
+from the jump host. However, before doing it, we need to gracefully leave the
+cluster and withdraw the pod CIDR routes from the Tailnet. From the jump host
+make sure the teardown scripts are present and SSH onto the EC2 VM to complete
+the task:
+
+```bash
+TAILSCALE_DEVICE_NAME=interesting-jang
+SSH_TARGET="ubuntu@${TAILSCALE_DEVICE_NAME}"
+
+scp \
+  _bin/k8s-node-down.sh \
+  _bin/tailscale-withdraw-linux-amd64-* \
+  "${SSH_TARGET}":~/
+
+ssh "${SSH_TARGET}"
+```
+
+On the Kubernetes node, set up the teardown scripts and run them:
+
+```bash
+sudo mv tailscale-withdraw-linux-amd64-* /usr/local/bin/tailscale-withdraw
+./k8s-node-down.sh
+```
+
+Back on the jump host, confirm the node was removed from the cluster:
+
+```bash
+kubectl --kubeconfig k8s-bootstrap-shared/kube-config.yaml get nodes --output wide
+```
+
+Finally, tear down the EC2 instance and all other resources:
+
+```bash
+source .ec2-env
+
+aws ec2 terminate-instances --instance-ids "${INSTANCE_ID}"
+aws ec2 wait instance-terminated --instance-ids "${INSTANCE_ID}"
+
+aws ec2 delete-key-pair --key-name tailsk8s
+rm --force ./tailsk8s.id_rsa ./tailsk8s.id_rsa.pub
+
+aws ec2 delete-security-group --group-id "${SECURITY_GROUP_ID}"
+ROUTE_TABLE_ASSOCIATION_ID="$(aws ec2 describe-route-tables \
+  --route-table-ids "${ROUTE_TABLE_ID}" \
+  --output text --query 'RouteTables[].Associations[].RouteTableAssociationId')"
+aws ec2 disassociate-route-table --association-id "${ROUTE_TABLE_ASSOCIATION_ID}"
+aws ec2 delete-route-table --route-table-id "${ROUTE_TABLE_ID}"
+
+aws ec2 detach-internet-gateway \
+  --internet-gateway-id "${INTERNET_GATEWAY_ID}" \
+  --vpc-id "${VPC_ID}"
+aws ec2 delete-internet-gateway --internet-gateway-id "${INTERNET_GATEWAY_ID}"
+
+aws ec2 delete-subnet --subnet-id "${SUBNET_ID}"
+
+aws ec2 delete-vpc --vpc-id "${VPC_ID}"
+```
 
 ## GCP GCE VM
 
-Placeholder
+Since the VM in this demo is intended to be ephemeral, we can just destroy it
+from the jump host. However, before doing it, we need to gracefully leave the
+cluster and withdraw the pod CIDR routes from the Tailnet. From the jump host
+make sure the teardown scripts are present and SSH onto the GCE VM to complete
+the task:
 
-## Bare Metal
+```bash
+TAILSCALE_DEVICE_NAME=agitated-feistel
+SSH_TARGET="ubuntu@${TAILSCALE_DEVICE_NAME}"
 
+scp \
+  _bin/k8s-node-down.sh \
+  _bin/tailscale-withdraw-linux-amd64-* \
+  "${SSH_TARGET}":~/
+
+ssh "${SSH_TARGET}"
 ```
-$ scp _bin/k8s-node-down.sh dhermes@relaxed-bouman:~/
-k8s-node-down.sh                                   100% 2010   157.1KB/s   00:00
-$ scp _bin/tailscale-withdraw-linux-amd64-* dhermes@relaxed-bouman:~/
-tailscale-withdraw-linux-amd64-v1.20211203.1       100% 2428KB   3.0MB/s   00:00
-$
-$ ssh dhermes@relaxed-bouman
-dhermes@relaxed-bouman:~$ sudo mv tailscale-withdraw-linux-amd64-* /usr/local/bin/tailscale-withdraw
-[sudo] password for dhermes:
-dhermes@relaxed-bouman:~$ ls -1 /var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt
-certificate-key.txt
-control-plane-load-balancer.txt
-join-token.txt
-kubeadm-control-plane-join-config.yaml
-kubeadm-init-config.yaml
-kubeadm-worker-join-config.yaml
-kube-config.yaml
-tailscale-api-key.txt
-dhermes@relaxed-bouman:~$
-dhermes@relaxed-bouman:~$ ./k8s-node-down.sh
-+ '[' 0 -ne 0 ']'
-++ hostname
-+ CURRENT_HOSTNAME=relaxed-bouman
-...
-[DEBUG] >   https://api.tailscale.com/api/v2/device/12345678901234567/routes
-Disabled route 10.100.3.0/24 for device 12345678901234567
-+ rm --force --recursive /home/dhermes/.kube
-+ sudo rm --force --recursive /etc/cni/net.d/
-+ sudo rm --force --recursive /etc/kubernetes/
-+ sudo rm --force --recursive /var/data/tailsk8s-bootstrap
-+ sudo mkdir --parents /var/data/tailsk8s-bootstrap
-+ sudo chown 1000:1000 /var/data/tailsk8s-bootstrap
-dhermes@relaxed-bouman:~$
-dhermes@relaxed-bouman:~$ kubectl get nodes
-The connection to the server localhost:8080 was refused - did you specify the right host or port?
-dhermes@relaxed-bouman:~$ ls -1 /var/data/tailsk8s-bootstrap/
-dhermes@relaxed-bouman:~$ rm k8s-node-down.sh
-dhermes@relaxed-bouman:~$ exit
-logout
-Connection to relaxed-bouman closed.
-$
-$
-$ kubectl --kubeconfig k8s-bootstrap-shared/kube-config.yaml get nodes --output wide
-NAME              STATUS   ROLES                  AGE   VERSION   INTERNAL-IP       EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
-eager-jennings    Ready    control-plane,master   9h    v1.22.4   100.109.83.23     <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-nice-mcclintock   Ready    <none>                 9h    v1.22.4   100.70.213.118    <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-pedantic-yonath   Ready    control-plane,master   10h   v1.22.4   100.110.217.104   <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
+
+On the Kubernetes node, set up the teardown scripts and run them:
+
+```bash
+sudo mv tailscale-withdraw-linux-amd64-* /usr/local/bin/tailscale-withdraw
+./k8s-node-down.sh
 ```
+
+Back on the jump host, confirm the node was removed from the cluster:
+
+```bash
+kubectl --kubeconfig k8s-bootstrap-shared/kube-config.yaml get nodes --output wide
+```
+
+Finally, tear down the GCE instance and all other resources:
+
+```bash
+gcloud --quiet compute instances delete \
+  "${TAILSCALE_DEVICE_NAME}" \
+  --zone "$(gcloud config get-value compute/zone)"
+# Attempt to delete `tailsk8s-allow-external`; it should already have been
+# deleted after the GCE VM joined the Tailnet
+gcloud --quiet compute firewall-rules delete tailsk8s-allow-external
+gcloud --quiet compute networks subnets delete tailsk8s
+gcloud --quiet compute networks delete tailsk8s
+```
+
+[1]: https://github.com/prabhatsharma/kubernetes-the-hard-way-aws/blob/c4872b83989562a35e9aba98ff92526a0f1498ca/docs/14-cleanup.md

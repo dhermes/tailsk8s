@@ -1,4 +1,4 @@
-/.env
+/.ec2-env
 /.extra_authorized_keys
 /k8s-bootstrap-shared/
 /tailscale-one-off-key-*.txt
