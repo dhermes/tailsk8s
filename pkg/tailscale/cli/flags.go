@@ -51,7 +51,7 @@ func ReadAPIKey(ctx context.Context, apiKey string) (string, error) {
 		return "", err
 	}
 
-	return string(apiKeyBytes), nil
+	return strings.TrimSuffix(string(apiKeyBytes), "\n"), nil
 }
 
 // DefaultTailnet attempts to determine the locally active Tailnet
