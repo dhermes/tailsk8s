@@ -115,13 +115,10 @@ CA_CERT_HASH="${CA_CERT_HASH}" \
 
 sudo kubeadm join \
   --config "${HOME}/kubeadm-join-config.yaml"
+rm --force "${HOME}/kubeadm-join-config.yaml"
 
 ## Label the newly added node with `tailsk8s`` label(s)
 
 kubectl label node \
   "${CURRENT_HOSTNAME}" \
   "tailsk8s.io/advertise-subnet=${ADVERTISE_SUBNET/\//__}"
-
-## Clean up temporary files
-
-rm --force "${HOME}/kubeadm-join-config.yaml"
