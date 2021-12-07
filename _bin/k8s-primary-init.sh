@@ -155,6 +155,7 @@ sudo kubeadm init \
   --upload-certs \
   --skip-token-print \
   --skip-certificate-key-print
+rm --force "${HOME}/kubeadm-init-config.yaml"
 
 ## Set Up Kubernetes Config
 
@@ -183,7 +184,3 @@ chmod 444 "${K8S_BOOTSTRAP_DIR}/ca-cert-hash.txt"
 rm --force "${K8S_BOOTSTRAP_DIR}/kube-config.yaml"
 cp "${HOME}/.kube/config" "${K8S_BOOTSTRAP_DIR}/kube-config.yaml"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/kube-config.yaml"
-
-## Clean up temporary files
-
-rm --force "${HOME}/kubeadm-init-config.yaml"
