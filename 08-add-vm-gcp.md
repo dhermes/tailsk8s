@@ -59,6 +59,9 @@ gcloud compute instances create "${TAILSCALE_DEVICE_NAME}" \
   --scopes 'compute-rw,storage-ro,service-management,service-control,logging-write,monitoring' \
   --subnet tailsk8s \
   --tags 'tailsk8s,worker'
+
+# To poll until completion:
+gcloud compute instances list --filter="tags.items=tailsk8s"
 ```
 
 ## Validate Connection
@@ -91,7 +94,7 @@ one-off key for joining the Tailnet:
 # NOTE: .extra_authorized_keys should contain a list of SSH public keys
 #       relevant to the Tailnet. It can be as simple as:
 #       > cp ~/.ssh/id_ed25519.pub .extra_authorized_keys
-EXTRA_AUTHORIZED_KEYS=".extra_authorized_keys"
+EXTRA_AUTHORIZED_KEYS=.extra_authorized_keys
 TAILSCALE_ONE_OFF_KEY=tailscale-one-off-key-PT.txt
 
 gcloud compute scp \
@@ -112,7 +115,7 @@ doing SSH over Tailscale):
 
 ```bash
 TAILSCALE_DEVICE_NAME=agitated-feistel
-EXTRA_AUTHORIZED_KEYS="~/.extra_authorized_keys"
+EXTRA_AUTHORIZED_KEYS=~/.extra_authorized_keys
 
 ./bootstrap-ssh-cloud-provider.sh "${TAILSCALE_DEVICE_NAME}" "${EXTRA_AUTHORIZED_KEYS}"
 rm bootstrap-ssh-cloud-provider.sh
@@ -128,7 +131,7 @@ ssh ubuntu@"${PUBLIC_IP}"
 Now, back on the GCE instance:
 
 ```bash
-TAILSCALE_ONE_OFF_KEY="~/tailscale-one-off-key-PT.txt"
+TAILSCALE_ONE_OFF_KEY=~/tailscale-one-off-key-PT.txt
 
 ./new-machine.sh "${TAILSCALE_ONE_OFF_KEY}"
 rm ./new-machine.sh
@@ -180,11 +183,11 @@ scp \
   _bin/k8s-install.sh \
   _bin/k8s-worker-join.sh \
   _bin/tailscale-advertise-linux-amd64-* \
-  templates/httpbin.manifest.yaml \
+  _templates/httpbin.manifest.yaml \
   ubuntu@"${TAILSCALE_DEVICE_NAME}":~/
 scp \
   k8s-bootstrap-shared/* \
-  templates/kubeadm* \
+  _templates/kubeadm* \
   ubuntu@"${TAILSCALE_DEVICE_NAME}":/var/data/tailsk8s-bootstrap/
 
 ssh ubuntu@"${TAILSCALE_DEVICE_NAME}"
@@ -200,7 +203,7 @@ ADVERTISE_SUBNET='10.100.5.0/24'
 sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
 
 ./k8s-install.sh
-rm k8s-install.sh
+rm ./k8s-install.sh
 
 ./k8s-worker-join.sh "${ADVERTISE_SUBNET}"
 rm ./k8s-worker-join.sh
