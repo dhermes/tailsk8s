@@ -289,5 +289,5 @@ kubectl delete --filename ./httpbin.manifest.yaml
 rm ./httpbin.manifest.yaml
 ```
 
-[1]: 89-tailscale-admin.md
+[1]: 02-prepare-tailscale-keys.md
 [2]: https://cloud.google.com/compute/docs/general-purpose-machines#e2_machine_types

@@ -357,5 +357,5 @@ kubectl delete --filename ./httpbin.manifest.yaml
 rm ./httpbin.manifest.yaml
 ```
 
-[1]: 89-tailscale-admin.md
+[1]: 02-prepare-tailscale-keys.md
 [2]: https://aws.amazon.com/ec2/instance-types/t3/

@@ -3,7 +3,7 @@
 ## Jump Host
 
 <p align="center">
-  <img src="../_images/suspicious-hawking.jpg?raw=true" />
+  <img src="./_images/suspicious-hawking.jpg?raw=true" />
 </p>
 
 The "jump host" is the primary computer I'll be using to administer all of the
@@ -29,7 +29,7 @@ do anything special to seed the random name generation other than
 for the Kubernetes cluster I got none other than [Rob Pike][3] himself.
 
 <p align="center">
-  <img src="../_images/stoic-pike.jpg?raw=true" />
+  <img src="./_images/stoic-pike.jpg?raw=true" />
 </p>
 
 This is incredibly appropriate! Rob is one of the three creators of the Go
@@ -48,13 +48,13 @@ Lurking around the corner a now-defunct MacBook charging block can be
 seen sticking out of the wall:
 
 <p align="center">
-  <img src="../_images/pedantic-yonath-power-supply.jpg?raw=true" />
+  <img src="./_images/pedantic-yonath-power-supply.jpg?raw=true" />
 </p>
 
 It leads to an entire Early 2011 [MacBook Pro][12] under the bed!
 
 <p align="center">
-  <img src="../_images/pedantic-yonath.jpg?raw=true" />
+  <img src="./_images/pedantic-yonath.jpg?raw=true" />
 </p>
 
 Though it is on the older end of the devices in my home cluster, it's still
@@ -69,7 +69,7 @@ In my office you can find `pedantic-yonath` under a bed; one room over you
 can find `eager-jennings` under a dresser:
 
 <p align="center">
-  <img src="../_images/eager-jennings.jpg?raw=true" />
+  <img src="./_images/eager-jennings.jpg?raw=true" />
 </p>
 
 Other than the jump host (which is not in the cluster, just in the Tailnet)
@@ -83,7 +83,7 @@ Under a bed, under a dresser, now head downstairs and look under a chair and
 you'll find `nice-mcclintock`:
 
 <p align="center">
-  <img src="../_images/nice-mcclintock.jpg?raw=true" />
+  <img src="./_images/nice-mcclintock.jpg?raw=true" />
 </p>
 
 This laptop is reliable, but old and underpowered. The WiFi radio is 2.4GHz
@@ -99,7 +99,7 @@ In a somewhat more conventional place, the last tower I ever bought (as of
 this writing) can be found under the desk in my office:
 
 <p align="center">
-  <img src="../_images/relaxed-bouman.jpg?raw=true" />
+  <img src="./_images/relaxed-bouman.jpg?raw=true" />
 </p>
 
 This machine is very old (2011) and hadn't been turned on since 2016 and so
@@ -129,7 +129,7 @@ When "someone else's computer" is [AWS EC2][8] we use a `t3.micro`
 shortly.
 
 <p align="center">
-  <img src="../_images/interesting-jang.jpg?raw=true" />
+  <img src="./_images/interesting-jang.jpg?raw=true" />
 </p>
 
 `t3.micro`
@@ -140,7 +140,7 @@ When "someone else's computer" is [GCP GCE][10] we use a `e2-micro`
 [instance][11] (similar comments on instance size and lifetime).
 
 <p align="center">
-  <img src="../_images/agitated-feistel.png?raw=true" />
+  <img src="./_images/agitated-feistel.png?raw=true" />
 </p>
 
 `e2-micro`
