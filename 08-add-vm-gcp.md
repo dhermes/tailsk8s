@@ -1,4 +1,4 @@
-# Add a GCP GCE VM to the Kubernetes Cluster
+# Add a GCP GCE Instance to the Kubernetes Cluster
 
 In this demo `tailsk8s` cluster, we have fully virtualized the `10.100.0.0/16`
 pod subnet and are letting Tailscale handle the assignment of blocks. This
@@ -106,9 +106,9 @@ rm --force "${TAILSCALE_ONE_OFF_KEY}"
 gcloud compute ssh ubuntu@"${TAILSCALE_DEVICE_NAME}"
 ```
 
-On the GCE VM, run the bootstrap script. This will add new SSH public keys so
-we can stop using `gcloud compute ssh` (which will be necessary when doing SSH
-over Tailscale):
+On the GCE instance, run the bootstrap script. This will add new SSH public
+keys so we can stop using `gcloud compute ssh` (which will be necessary when
+doing SSH over Tailscale):
 
 ```bash
 TAILSCALE_DEVICE_NAME=agitated-feistel
@@ -125,7 +125,7 @@ effect:
 ssh ubuntu@"${PUBLIC_IP}"
 ```
 
-Now, back on the GCE VM:
+Now, back on the GCE instance:
 
 ```bash
 TAILSCALE_ONE_OFF_KEY="~/tailscale-one-off-key-PT.txt"
@@ -208,7 +208,9 @@ rm ./k8s-worker-join.sh
 
 > **NOTE**: Here I've chosen to use to use a `e2-micro` [instance][2], but
 > this may be underpowered. Note that an `e2-standard-2` is the instance type
-> used in Kelsey's Kubernetes The Hard Way.
+> used in Kelsey's Kubernetes The Hard Way. We similarly don't use the
+> `--boot-disk-size 200GB` flag when invoking
+> `gcloud compute instances create`.
 
 ## Validate Cluster after Joining
 
