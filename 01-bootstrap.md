@@ -100,11 +100,3 @@ ssh "${REMOTE_USERNAME}@${LOCAL_IP}"
 
 Once this connection has been confirmed, you can start to `scp` files over
 to the new machine as needed and then use SSH sessions to run the scripts.
-
-## AWS EC2 VM
-
-Placeholder
-
-## GCP GCE VM
-
-Placeholder
