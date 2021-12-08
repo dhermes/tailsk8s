@@ -47,7 +47,8 @@ httpbin       httpbin      ClusterIP   10.101.177.244   <none>        8000/TCP  
 kube-system   kube-dns     ClusterIP   10.101.0.10      <none>        53/UDP,53/TCP,9153/TCP   40m   k8s-app=kube-dns
 ```
 
-We can reach **pods** from the jump host because
+We can reach **pods** from the jump host because they of Tailscale subnet
+routers:
 
 ```
 $ curl http://10.100.2.3:80/headers
@@ -76,15 +77,17 @@ $ curl http://10.100.3.2:80/headers
 }
 ```
 
-but cannot reach the service (this is expected)
+but cannot reach the service because `10.101.0.0/16` is not handled by any
+Tailscale subnet router(s):
 
 ```
 $ curl --max-time 5 http://10.101.177.244:8000/headers
 curl: (28) Connection timed out after 5001 milliseconds
 ```
 
-**Within** the cluster (where `kubelet` can write custom `iptables` rules),
-we can reach the service as well:
+**Within** the cluster (where `kubelet` can write custom `iptables` rules to
+tell `10.101.0.0/16` to bounce to `kube-proxy`), we can reach the service as
+well:
 
 ```
 $ ssh dhermes@pedantic-yonath
@@ -122,7 +125,7 @@ dhermes@pedantic-yonath:~$ curl http://10.100.3.2:80/headers
 }
 ```
 
-Check out Kubernetes DNS as well:
+## Validate Kubernetes DNS
 
 ```
 dhermes@pedantic-yonath:~$ nslookup httpbin.httpbin.svc.cluster.local. 10.101.0.10
@@ -133,7 +136,7 @@ Name:   httpbin.httpbin.svc.cluster.local
 Address: 10.101.177.244
 ```
 
-Clean Up:
+## Clean Up
 
 ```
 $ kubectl --kubeconfig k8s-bootstrap-shared/kube-config.yaml delete --filename _templates/httpbin.manifest.yaml
