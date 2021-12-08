@@ -57,7 +57,7 @@ cost with only 6 devices.) We'll store these keys locally, for example:
   <img src="./_images/tailscale-prepared-one-off-keys.png?raw=true" />
 </p>
 
-----
+---
 
 Next: [The Players][4]
 

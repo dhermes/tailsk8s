@@ -142,3 +142,9 @@ dhermes@relaxed-bouman:~$ exit
 logout
 Connection to relaxed-bouman closed.
 ```
+
+---
+
+Next: [Smoke Test][1]
+
+[1]: 12-smoke-test.md

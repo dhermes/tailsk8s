@@ -285,4 +285,9 @@ kubectl delete --filename ./httpbin.manifest.yaml
 rm ./httpbin.manifest.yaml
 ```
 
+---
+
+Next: [Cleaning Up][2]
+
 [1]: https://cloud.google.com/compute/docs/general-purpose-machines#e2_machine_types
+[2]: 15-cleaning-up.md

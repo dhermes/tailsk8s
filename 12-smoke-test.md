@@ -142,3 +142,9 @@ serviceaccount "httpbin" deleted
 deployment.apps "httpbin" deleted
 service "httpbin" deleted
 ```
+
+---
+
+Next: [Add an AWS EC2 VM to the Kubernetes Cluster][1]
+
+[1]: 13-add-vm-aws.md

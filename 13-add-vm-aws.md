@@ -357,4 +357,9 @@ rm ./httpbin.manifest.yaml
 
 Placeholder
 
+---
+
+Next: [Add a GCP GCE Instance to the Kubernetes Cluster][2]
+
 [1]: https://aws.amazon.com/ec2/instance-types/t3/
+[2]: 14-add-vm-gcp.md
