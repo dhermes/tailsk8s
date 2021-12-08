@@ -38,12 +38,12 @@ generate six [one-off keys][3]. (It's tempting to use a reusable key or even
 ephemeral key here, but having better security hygiene here is not a large
 cost with only 6 devices.) We'll store these keys locally, for example:
 
-- `tailscale-one-off-key-KC`
-- `tailscale-one-off-key-HW`
-- `tailscale-one-off-key-NL`
-- `tailscale-one-off-key-YG`
-- `tailscale-one-off-key-AA`
-- `tailscale-one-off-key-PT`
+- `k8s-bootstrap-shared/tailscale-one-off-key-KC`
+- `k8s-bootstrap-shared/tailscale-one-off-key-HW`
+- `k8s-bootstrap-shared/tailscale-one-off-key-NL`
+- `k8s-bootstrap-shared/tailscale-one-off-key-YG`
+- `k8s-bootstrap-shared/tailscale-one-off-key-AA`
+- `k8s-bootstrap-shared/tailscale-one-off-key-PT`
 
 <p align="center">
   <img src="./_images/tailscale-create-new-key.png?raw=true" />

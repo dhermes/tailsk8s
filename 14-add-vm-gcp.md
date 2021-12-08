@@ -91,7 +91,7 @@ one-off key for joining the Tailnet:
 
 ```bash
 EXTRA_AUTHORIZED_KEYS_FILENAME=.extra_authorized_keys
-TAILSCALE_AUTHKEY_FILENAME=tailscale-one-off-key-PT
+TAILSCALE_AUTHKEY_FILENAME=k8s-bootstrap-shared/tailscale-one-off-key-PT
 
 gcloud compute scp \
   "${EXTRA_AUTHORIZED_KEYS_FILENAME}" \

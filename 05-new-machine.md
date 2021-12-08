@@ -6,7 +6,7 @@ the new machine:
 
 ```bash
 SSH_TARGET=dhermes@192.168.7.131
-TAILSCALE_AUTHKEY_FILENAME=./tailscale-one-off-key-KC
+TAILSCALE_AUTHKEY_FILENAME=k8s-bootstrap-shared/tailscale-one-off-key-KC
 
 scp \
   _bin/new-machine.sh \
