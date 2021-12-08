@@ -17,6 +17,7 @@ package withdraw
 import (
 	"context"
 	"os"
+	"time"
 
 	"inet.af/netaddr"
 
@@ -48,6 +49,10 @@ func WithdrawAndDisable(ctx context.Context, c Config) error {
 		return err
 	}
 	cli.Printf(ctx, "Using hostname: %s\n", hostname)
+
+	// TODO: Remove this sleep once a more sane way of handling the race
+	//       condition between the local change above and the remote change below.
+	time.Sleep(5 * time.Second)
 
 	return DisableWithdrawnCIDR(ctx, c.APIConfig, cidr, hostname)
 }

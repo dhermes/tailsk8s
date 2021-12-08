@@ -17,7 +17,6 @@ package advertise
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"inet.af/netaddr"
 
@@ -35,10 +34,6 @@ func AcceptNewCIDR(ctx context.Context, c cloud.Config, cidr netaddr.IPPrefix, h
 	if err != nil {
 		return err
 	}
-
-	// TODO: Remove this sleep once a more sane way of handling the race
-	//       condition below is implemented (see `!RoutesContain()` check).
-	time.Sleep(5 * time.Second)
 
 	// Find all the **current** routes for the device.
 	grr := cloud.GetRoutesRequest{DeviceID: device.ID}
