@@ -30,13 +30,6 @@ both Kubernetes and Tailscale, you can go directly to
 - [Add a GCP GCE Instance to the Kubernetes Cluster][24]
 - [Cleaning Up][25]
 
-## Terms and Definitions
-
-- **Bare Metal**: this is primarily intended to mean "**not** virtualized",
-  i.e. not running in someone else's data center. The expectation is that the
-  reader has physical possession of a bare metal machine and can manually
-  administer if e.g. networking or power completely fail
-
 ## References, Documentation and Motivation
 
 Over the **many** days of getting this off the ground, I leaned heavily on
