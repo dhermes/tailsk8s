@@ -95,7 +95,7 @@ one-off key for joining the Tailnet:
 #       relevant to the Tailnet. It can be as simple as:
 #       > cp ~/.ssh/id_ed25519.pub .extra_authorized_keys
 EXTRA_AUTHORIZED_KEYS=.extra_authorized_keys
-TAILSCALE_ONE_OFF_KEY=tailscale-one-off-key-PT.txt
+TAILSCALE_ONE_OFF_KEY=tailscale-one-off-key-PT
 
 gcloud compute scp \
   "${EXTRA_AUTHORIZED_KEYS}" \
@@ -131,7 +131,7 @@ ssh ubuntu@"${PUBLIC_IP}"
 Now, back on the GCE instance:
 
 ```bash
-TAILSCALE_ONE_OFF_KEY=~/tailscale-one-off-key-PT.txt
+TAILSCALE_ONE_OFF_KEY=~/tailscale-one-off-key-PT
 
 ./new-machine.sh "${TAILSCALE_ONE_OFF_KEY}"
 rm ./new-machine.sh

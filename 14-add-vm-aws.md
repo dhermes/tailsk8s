@@ -166,7 +166,7 @@ one-off key for joining the Tailnet:
 #       relevant to the Tailnet. It can be as simple as:
 #       > cp ~/.ssh/id_ed25519.pub .extra_authorized_keys
 EXTRA_AUTHORIZED_KEYS=.extra_authorized_keys
-TAILSCALE_ONE_OFF_KEY=tailscale-one-off-key-AA.txt
+TAILSCALE_ONE_OFF_KEY=tailscale-one-off-key-AA
 
 scp -i ./tailsk8s.id_rsa \
   "${EXTRA_AUTHORIZED_KEYS}" \
@@ -202,7 +202,7 @@ ssh ubuntu@"${PUBLIC_IP}"
 Now, back on the EC2 VM:
 
 ```bash
-TAILSCALE_ONE_OFF_KEY=~/tailscale-one-off-key-AA.txt
+TAILSCALE_ONE_OFF_KEY=~/tailscale-one-off-key-AA
 
 ./new-machine.sh "${TAILSCALE_ONE_OFF_KEY}"
 rm ./new-machine.sh
