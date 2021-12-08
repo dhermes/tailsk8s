@@ -216,7 +216,7 @@ a good idea). If that is the case, it can be authorized from the jump host:
 ./_bin/tailscale-authorize-linux-amd64-v1.20211203.1 \
   --debug \
   --hostname "${TAILSCALE_DEVICE_NAME}" \
-  --api-key file:./k8s-bootstrap-shared/tailscale-api-key.txt
+  --api-key file:./k8s-bootstrap-shared/tailscale-api-key
 ```
 
 After `new-machine.sh` has completed, the **only** traffic allowed into the

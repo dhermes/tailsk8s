@@ -38,7 +38,7 @@ CA_CERT_HASH="sha256:$(cat "${K8S_BOOTSTRAP_DIR}/ca-cert-hash.txt")"
 CERTIFICATE_KEY="$(cat "${K8S_BOOTSTRAP_DIR}/certificate-key.txt")"
 CONTROL_PLANE_LOAD_BALANCER="$(cat "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt")"
 JOIN_TOKEN="$(cat "${K8S_BOOTSTRAP_DIR}/join-token.txt")"
-TAILSCALE_API_KEY_FILENAME="${K8S_BOOTSTRAP_DIR}/tailscale-api-key.txt"
+TAILSCALE_API_KEY_FILENAME="${K8S_BOOTSTRAP_DIR}/tailscale-api-key"
 CONFIG_TEMPLATE_FILENAME="${K8S_BOOTSTRAP_DIR}/kubeadm-control-plane-join-config.yaml"
 
 ## Kubernetes Cluster Bootstrap

@@ -46,7 +46,7 @@ CURRENT_HOSTNAME="$(hostname)"
 OWNER_GROUP="$(id --user):$(id --group)"
 HOST_IP="$(tailscale ip -4)"
 K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
-TAILSCALE_API_KEY_FILENAME="${K8S_BOOTSTRAP_DIR}/tailscale-api-key.txt"
+TAILSCALE_API_KEY_FILENAME="${K8S_BOOTSTRAP_DIR}/tailscale-api-key"
 CONFIG_TEMPLATE_FILENAME="${K8S_BOOTSTRAP_DIR}/kubeadm-init-config.yaml"
 
 ## Ensure `kubeadm-init-config.yaml` template file exists

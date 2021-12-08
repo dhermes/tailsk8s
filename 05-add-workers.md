@@ -11,7 +11,7 @@ certificate-key.txt                                100%   65    23.8KB/s   00:00
 control-plane-load-balancer.txt                    100%   15     0.9KB/s   00:00
 join-token.txt                                     100%   24     8.4KB/s   00:00
 kube-config.yaml                                   100% 5642   275.1KB/s   00:00
-tailscale-api-key.txt                              100%   40    13.4KB/s   00:00
+tailscale-api-key                                  100%   40    13.4KB/s   00:00
 $ scp _templates/kubeadm* dhermes@nice-mcclintock:/var/data/tailsk8s-bootstrap/
 kubeadm-control-plane-join-config.yaml             100%  996   353.9KB/s   00:00
 kubeadm-init-config.yaml                           100% 1276   163.3KB/s   00:00
@@ -31,7 +31,7 @@ kubeadm-control-plane-join-config.yaml
 kubeadm-init-config.yaml
 kubeadm-worker-join-config.yaml
 kube-config.yaml
-tailscale-api-key.txt
+tailscale-api-key
 dhermes@nice-mcclintock:~$
 dhermes@nice-mcclintock:~$ ./k8s-worker-join.sh '10.100.2.0/24'
 + '[' 1 -ne 1 ']'
@@ -65,7 +65,7 @@ kubeadm-control-plane-join-config.yaml
 kubeadm-init-config.yaml
 kubeadm-worker-join-config.yaml
 kube-config.yaml
-tailscale-api-key.txt
+tailscale-api-key
 dhermes@nice-mcclintock:~$ exit
 logout
 Connection to nice-mcclintock closed.
@@ -82,7 +82,7 @@ certificate-key.txt                                100%   65     8.3KB/s   00:00
 control-plane-load-balancer.txt                    100%   15     1.3KB/s   00:00
 join-token.txt                                     100%   24     0.8KB/s   00:00
 kube-config.yaml                                   100% 5642   461.5KB/s   00:00
-tailscale-api-key.txt                              100%   40     5.3KB/s   00:00
+tailscale-api-key                                  100%   40     5.3KB/s   00:00
 $ scp _templates/kubeadm* dhermes@relaxed-bouman:/var/data/tailsk8s-bootstrap/
 kubeadm-control-plane-join-config.yaml             100%  996    85.9KB/s   00:00
 kubeadm-init-config.yaml                           100% 1276   104.5KB/s   00:00
@@ -102,7 +102,7 @@ kubeadm-control-plane-join-config.yaml
 kubeadm-init-config.yaml
 kubeadm-worker-join-config.yaml
 kube-config.yaml
-tailscale-api-key.txt
+tailscale-api-key
 dhermes@relaxed-bouman:~$
 dhermes@relaxed-bouman:~$ ./k8s-worker-join.sh '10.100.3.0/24'
 + '[' 1 -ne 1 ']'
@@ -137,7 +137,7 @@ kubeadm-control-plane-join-config.yaml
 kubeadm-init-config.yaml
 kubeadm-worker-join-config.yaml
 kube-config.yaml
-tailscale-api-key.txt
+tailscale-api-key
 dhermes@relaxed-bouman:~$ exit
 logout
 Connection to relaxed-bouman closed.
