@@ -123,6 +123,7 @@ be created:
 
 ```bash
 TAILSCALE_DEVICE_NAME=interesting-jang
+INSTANCE_TYPE=t3.micro
 
 INSTANCE_ID=$(aws ec2 run-instances \
   --associate-public-ip-address \
@@ -130,7 +131,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
   --count 1 \
   --key-name tailsk8s \
   --security-group-ids "${SECURITY_GROUP_ID}" \
-  --instance-type t3.micro \
+  --instance-type "${INSTANCE_TYPE}" \
   --subnet-id "${SUBNET_ID}" \
   --block-device-mappings='{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 8}, "NoDevice": ""}' \
   --output text --query 'Instances[].InstanceId')
@@ -159,12 +160,7 @@ ssh -i ./tailsk8s.id_rsa ubuntu@"${PUBLIC_IP}"
 From the jump host, copy over scripts, SSH `authorized_keys` and a Tailscale
 one-off key for joining the Tailnet:
 
-> See [Tailscale Admin][1] for more information on generating a one-off key.
-
 ```bash
-# NOTE: .extra_authorized_keys should contain a list of SSH public keys
-#       relevant to the Tailnet. It can be as simple as:
-#       > cp ~/.ssh/id_ed25519.pub .extra_authorized_keys
 EXTRA_AUTHORIZED_KEYS=.extra_authorized_keys
 TAILSCALE_ONE_OFF_KEY=tailscale-one-off-key-AA
 
@@ -277,7 +273,7 @@ rm ./k8s-install.sh
 rm ./k8s-control-plane-join.sh
 ```
 
-> **NOTE**: There may be some issues using a `t3.micro` [instance][2] with
+> **NOTE**: There may be some issues using a `t3.micro` [instance][1] with
 > `kubeadm`. For example:
 >
 > ```
@@ -357,5 +353,4 @@ kubectl delete --filename ./httpbin.manifest.yaml
 rm ./httpbin.manifest.yaml
 ```
 
-[1]: 02-prepare-tailscale-keys.md
-[2]: https://aws.amazon.com/ec2/instance-types/t3/
+[1]: https://aws.amazon.com/ec2/instance-types/t3/

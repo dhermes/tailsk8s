@@ -49,13 +49,14 @@ be created:
 
 ```bash
 TAILSCALE_DEVICE_NAME=agitated-feistel
+MACHINE_TYPE=e2-micro
 
 gcloud compute instances create "${TAILSCALE_DEVICE_NAME}" \
   --async \
   --can-ip-forward \
   --image-family ubuntu-2004-lts \
   --image-project ubuntu-os-cloud \
-  --machine-type e2-micro \
+  --machine-type "${MACHINE_TYPE}" \
   --scopes 'compute-rw,storage-ro,service-management,service-control,logging-write,monitoring' \
   --subnet tailsk8s \
   --tags 'tailsk8s,worker'
@@ -88,12 +89,7 @@ PUBLIC_IP=$(gcloud compute instances describe \
 From the jump host, copy over scripts, SSH `authorized_keys` and a Tailscale
 one-off key for joining the Tailnet:
 
-> See [Tailscale Admin][1] for more information on generating a one-off key.
-
 ```bash
-# NOTE: .extra_authorized_keys should contain a list of SSH public keys
-#       relevant to the Tailnet. It can be as simple as:
-#       > cp ~/.ssh/id_ed25519.pub .extra_authorized_keys
 EXTRA_AUTHORIZED_KEYS=.extra_authorized_keys
 TAILSCALE_ONE_OFF_KEY=tailscale-one-off-key-PT
 
@@ -209,7 +205,7 @@ rm ./k8s-install.sh
 rm ./k8s-worker-join.sh
 ```
 
-> **NOTE**: Here I've chosen to use to use a `e2-micro` [instance][2], but
+> **NOTE**: Here I've chosen to use to use a `e2-micro` [instance][1], but
 > this may be underpowered. Note that an `e2-standard-2` is the instance type
 > used in Kelsey's Kubernetes The Hard Way. We similarly don't use the
 > `--boot-disk-size 200GB` flag when invoking
@@ -289,5 +285,4 @@ kubectl delete --filename ./httpbin.manifest.yaml
 rm ./httpbin.manifest.yaml
 ```
 
-[1]: 02-prepare-tailscale-keys.md
-[2]: https://cloud.google.com/compute/docs/general-purpose-machines#e2_machine_types
+[1]: https://cloud.google.com/compute/docs/general-purpose-machines#e2_machine_types

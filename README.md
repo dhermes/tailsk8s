@@ -16,7 +16,7 @@ both Kubernetes and Tailscale, you can go directly to
 ## Labs
 
 - [Prerequisites][11]
-- [Tailscale Admin][12]
+- [Prepare Tailscale Keys][12]
 - [Configure CNI Networking for Tailscale][19]
 - [Smoke Test][23]
 - [Add an AWS EC2 VM to the Kubernetes Cluster][24]
