@@ -1,7 +1,8 @@
 # Bringing up a New Machine
 
 This assumes the new machine has been bootstrapped so that the jump host
-can SSH in. Use the `new-machine.sh` [script][4] to
+can SSH in. From the jump host, copy over the `new-machine.sh` [script][4] to
+the new machine:
 
 ```bash
 SSH_TARGET=dhermes@192.168.7.131
@@ -161,9 +162,30 @@ sudo service ssh restart
 sudo ufw status  # Sanity Check
 ```
 
+## Validate Connection
+
+After enabling `ufw`, SSH over the local IP (e.g. `192.168.7.131`) will no
+longer be possible. Ensure `ufw` is working as expected and that SSH over
+Tailscale is working. From the jump host:
+
+```bash
+OLD_SSH_TARGET=dhermes@192.168.7.131
+SSH_TARGET=dhermes@pedantic-yonath
+
+ssh -o ConnectTimeout=10 "${OLD_SSH_TARGET}"
+# ssh: connect to host 192.168.7.131 port 22: Connection timed out
+
+ssh "${SSH_TARGET}"
+```
+
+---
+
+Next: [Installing Kubernetes Tools][7]
+
 [1]: https://tailscale.com/download/linux/ubuntu-2004
 [2]: https://docs.docker.com/engine/install/ubuntu/
 [3]: https://docs.docker.com/engine/install/linux-postinstall/
 [4]: _bin/new-machine.sh
 [5]: https://tailscale.com/kb/1104/enable-ip-forwarding/
 [6]: https://tailscale.com/kb/1077/secure-server-ubuntu-18-04/
+[7]: 06-install-k8s.md
