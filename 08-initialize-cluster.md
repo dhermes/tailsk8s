@@ -1,137 +1,203 @@
 # Initialize Cluster
 
-## Bring Up Primary Control Plane Node
+Now all of the preliminaries are out of the way, it's time to bring up the
+cluster! Adding our **first** control plane node is different than adding
+any of the other nodes because we are configuring the cluster itself
+(just once). The `k8s-primary-init.sh` [script][2] handles this task and
+consume 5 input arguments:
 
-```
-$ scp _bin/k8s-primary-init.sh dhermes@pedantic-yonath:~/
-k8s-primary-init.sh                                100% 6060   234.5KB/s   00:00
-$ scp \
->   k8s-bootstrap-shared/tailscale-api-key \
->   dhermes@pedantic-yonath:/var/data/tailsk8s-bootstrap/
-tailscale-api-key                                  100%   40     2.8KB/s   00:00
-$ scp _templates/kubeadm* dhermes@pedantic-yonath:/var/data/tailsk8s-bootstrap/
-kubeadm-control-plane-join-config.yaml             100% 1000    66.0KB/s   00:00
-kubeadm-init-config.yaml                           100% 1280    68.2KB/s   00:00
-kubeadm-worker-join-config.yaml                    100%  877    82.4KB/s   00:00
-$ scp _bin/tailscale-advertise-linux-amd64-* dhermes@pedantic-yonath:~/
-tailscale-advertise-linux-amd64-v1.20211203.1      100% 2427KB   3.5MB/s   00:00
-$
-$ ssh dhermes@pedantic-yonath
-dhermes@pedantic-yonath:~$
-dhermes@pedantic-yonath:~$ sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
-dhermes@pedantic-yonath:~$ tailscale-advertise --help
-Advertise to the Tailnet that the local node handles a given CIDR range
-...
-dhermes@pedantic-yonath:~$ ls -1 /var/data/tailsk8s-bootstrap/
-kubeadm-control-plane-join-config.yaml
-kubeadm-init-config.yaml
-kubeadm-worker-join-config.yaml
-tailscale-api-key
-dhermes@pedantic-yonath:~$
-dhermes@pedantic-yonath:~$ ./k8s-primary-init.sh \
->   stoic-pike \
->   '10.100.0.0/16' \
->   '10.101.0.0/16' \
->   '10.100.0.0/24' \
->   '100.70.213.118'
-+ '[' 5 -ne 5 ']'
-+ CLUSTER_NAME=stoic-pike
-...
-+ rm --force /var/data/tailsk8s-bootstrap/kube-config.yaml
-+ cp /home/dhermes/.kube/config /var/data/tailsk8s-bootstrap/kube-config.yaml
-+ chmod 444 /var/data/tailsk8s-bootstrap/kube-config.yaml
-+ rm --force /home/dhermes/kubeadm-init-config.yaml
-dhermes@pedantic-yonath:~$
-dhermes@pedantic-yonath:~$ kubectl get nodes
-NAME              STATUS   ROLES                  AGE   VERSION
-pedantic-yonath   Ready    control-plane,master   25s   v1.22.4
-dhermes@pedantic-yonath:~$
-dhermes@pedantic-yonath:~$ rm k8s-primary-init.sh
-dhermes@pedantic-yonath:~$ ls -1 /var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt
-certificate-key.txt
-control-plane-load-balancer.txt
-join-token.txt
-kubeadm-control-plane-join-config.yaml
-kubeadm-init-config.yaml
-kubeadm-worker-join-config.yaml
-kube-config.yaml
-tailscale-api-key
-dhermes@pedantic-yonath:~$ exit
-logout
-Connection to pedantic-yonath closed.
-$
-$
-$ scp dhermes@pedantic-yonath:/var/data/tailsk8s-bootstrap/*.{txt,yaml} k8s-bootstrap-shared/
-ca-cert-hash.txt                                   100%   65     9.7KB/s   00:00
-certificate-key.txt                                100%   65     6.9KB/s   00:00
-control-plane-load-balancer.txt                    100%   15     1.9KB/s   00:00
-join-token.txt                                     100%   24     3.6KB/s   00:00
-kube-config.yaml                                   100% 5642   368.1KB/s   00:00
+- `CLUSTER_NAME`: The human readable name of the cluster.
+- `POD_SUBNET`: The subnet used to allocate (virtual) IPs to pods in
+  the cluster.
+- `SERVICE_SUBNET`: The subnet used to allocate (virtual) IPs to services in
+  the cluster.
+- `ADVERTISE_SUBNET`: The subnet used for pods on this node; this will be
+  a part of `${POD_SUBNET}` exclusively owned by this node.
+- `CONTROL_PLANE_LOAD_BALANCER`: The Tailscale IP of the load balancer we
+  created in [Provision Load Balancer][3].
+
+The script assumes there are some files present:
+
+- `/var/data/tailsk8s-bootstrap/tailscale-api-key`
+- `/var/data/tailsk8s-bootstrap/kubeadm-init-config.yaml`
+- `/usr/local/bin/tailscale-advertise` (or anywhere else on `${PATH}`)
+
+and it will produce re-usable **output** files in the
+`/var/data/tailsk8s-bootstrap` directory that are intended to be copied back
+onto the jump host:
+
+- `join-token.txt`
+- `certificate-key.txt`
+- `control-plane-load-balancer.txt`
+- `ca-cert-hash.txt`
+- `kube-config.yaml`
+
+To actually bring up the cluster, copy over the inputs from the jump host,
+run the script on the control plane node and then copy back the outputs to
+the jump host:
+
+```bash
+SSH_TARGET=dhermes@pedantic-yonath
+
+scp \
+  _bin/k8s-primary-init.sh \
+  _bin/tailscale-advertise-linux-amd64-* \
+  "${SSH_TARGET}":~/
+scp \
+  k8s-bootstrap-shared/tailscale-api-key \
+  _templates/kubeadm-init-config.yaml \
+  "${SSH_TARGET}":/var/data/tailsk8s-bootstrap
+
+ssh "${SSH_TARGET}"
+# ... run
+
+REMOTE_FILES="ca-cert-hash.txt,certificate-key.txt,control-plane-load-balancer.txt,join-token.txt,kube-config.yaml"
+scp \
+  "${SSH_TARGET}":/var/data/tailsk8s-bootstrap/\{"${REMOTE_FILES}"\} \
+  k8s-bootstrap-shared/
 ```
 
-## Add a Second Control Plane Node
+To actually carry out that `# ... run` step on the control plane node
+(above it was `pedantic-yonath`):
 
-```
-$ scp _bin/k8s-control-plane-join.sh dhermes@eager-jennings:~/
-k8s-control-plane-join.sh                          100% 3735   485.9KB/s   00:00
-$ scp k8s-bootstrap-shared/* dhermes@eager-jennings:/var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt                                   100%   65     6.1KB/s   00:00
-certificate-key.txt                                100%   65     8.8KB/s   00:00
-control-plane-load-balancer.txt                    100%   15     3.0KB/s   00:00
-join-token.txt                                     100%   24     2.9KB/s   00:00
-kube-config.yaml                                   100% 5642   996.5KB/s   00:00
-tailscale-api-key                                  100%   40     3.0KB/s   00:00
-$ scp _templates/kubeadm* dhermes@eager-jennings:/var/data/tailsk8s-bootstrap/
-kubeadm-control-plane-join-config.yaml             100%  996   104.9KB/s   00:00
-kubeadm-init-config.yaml                           100% 1276   242.1KB/s   00:00
-kubeadm-worker-join-config.yaml                    100%  873   152.1KB/s   00:00
-$ scp _bin/tailscale-advertise-linux-amd64-* dhermes@eager-jennings:~/
-tailscale-advertise-linux-amd64-v1.20211203.1      100% 2427KB   3.2MB/s   00:00
-$
-$ ssh dhermes@eager-jennings
-dhermes@eager-jennings:~$ sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
-dhermes@eager-jennings:~$ ls -1 /var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt
-certificate-key.txt
-control-plane-load-balancer.txt
-join-token.txt
-kubeadm-control-plane-join-config.yaml
-kubeadm-init-config.yaml
-kubeadm-worker-join-config.yaml
-kube-config.yaml
-tailscale-api-key
-dhermes@eager-jennings:~$
-dhermes@eager-jennings:~$ ./k8s-control-plane-join.sh '10.100.1.0/24'
-+ '[' 1 -ne 1 ']'
-+ ADVERTISE_SUBNET=10.100.1.0/24
-++ hostname
-+ CURRENT_HOSTNAME=eager-jennings
-++ tailscale ip -4
-+ HOST_IP=100.109.83.23
-+ K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
-++ cat /var/data/tailsk8s-bootstrap/ca-cert-hash.txt
-...
-Run 'kubectl get nodes' to see this node join the cluster.
+```bash
+CLUSTER_NAME=stoic-pike
+POD_SUBNET=10.100.0.0/16
+SERVICE_SUBNET=10.101.0.0/16
+ADVERTISE_SUBNET=10.100.0.0/24
+# NOTE: The `CONTROL_PLANE_LOAD_BALANCER` IP can be found with `tailscale status`
+CONTROL_PLANE_LOAD_BALANCER=100.70.213.118
 
-+ rm --force /home/dhermes/kubeadm-join-config.yaml
-dhermes@eager-jennings:~$
-dhermes@eager-jennings:~$ kubectl get nodes --output wide
-NAME              STATUS   ROLES                  AGE     VERSION   INTERNAL-IP       EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
-eager-jennings    Ready    control-plane,master   2m34s   v1.22.4   100.109.83.23     <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-pedantic-yonath   Ready    control-plane,master   19m     v1.22.4   100.110.217.104   <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-dhermes@eager-jennings:~$ rm k8s-control-plane-join.sh
-dhermes@eager-jennings:~$ ls -1 /var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt
-certificate-key.txt
-control-plane-load-balancer.txt
-join-token.txt
-kubeadm-control-plane-join-config.yaml
-kubeadm-init-config.yaml
-kubeadm-worker-join-config.yaml
-kube-config.yaml
-tailscale-api-key
-dhermes@eager-jennings:~$ exit
-logout
-Connection to eager-jennings closed.
+sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
+
+./k8s-primary-init.sh \
+  "${CLUSTER_NAME}" \
+  "${POD_SUBNET}" \
+  "${SERVICE_SUBNET}" \
+  "${ADVERTISE_SUBNET}" \
+  "${CONTROL_PLANE_LOAD_BALANCER}"
+
+rm ./k8s-primary-init.sh
 ```
+
+Note that we take care to avoid colliding with the `100.x.y.z` CGNAT
+address space [used by Tailscale][8].
+
+Below, let's dive into what `k8s-primary-init.sh` does.
+
+## Kubernetes Cluster Bootstrap (Before)
+
+In order for **new** nodes to join the `kubeadm`-managed cluster, they'll
+need to present a join token. Additionally, new control plane nodes will need
+to access the private keys for the Kubernetes CA, the `etcd` CA and a few
+other CAs. We'll utilize the `certificateKey` configuration value to pass
+(encrypted) private keys from one node to another.
+
+```bash
+CONTROL_PLANE_LOAD_BALANCER="..."
+K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
+
+kubeadm token generate > "${K8S_BOOTSTRAP_DIR}/join-token.txt"
+chmod 400 "${K8S_BOOTSTRAP_DIR}/join-token.txt"
+
+kubeadm certs certificate-key > "${K8S_BOOTSTRAP_DIR}/certificate-key.txt"
+chmod 400 "${K8S_BOOTSTRAP_DIR}/certificate-key.txt"
+
+echo "${CONTROL_PLANE_LOAD_BALANCER}" > "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
+chmod 444 "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
+```
+
+## CNI via Kubenet
+
+This is a core part of bringing up the node (and cluster), but it is a very
+involved topic. We'll save this for the next section:
+[Configure CNI Networking for Tailscale][1].
+
+## Initialize the Cluster with `kubeadm`
+
+We use the `kubeadm-init-config.yaml` [template][4] to fully specify the
+cluster configuration as YAML (vs. via flags). See the
+[`kubeadm` Configuration (v1beta3)][6] documentation as well as the
+[underlying Go types][5].
+
+```bash
+CONFIG_TEMPLATE_FILENAME=/var/data/tailsk8s-bootstrap/kubeadm-init-config.yaml
+JOIN_TOKEN="$(cat "${K8S_BOOTSTRAP_DIR}/join-token.txt")"
+CERTIFICATE_KEY="$(cat "${K8S_BOOTSTRAP_DIR}/certificate-key.txt")"
+CLUSTER_NAME="..."
+POD_SUBNET="..."
+SERVICE_SUBNET="..."
+
+echo "Populating \`kubeadm\` configuration via template:"
+echo '================================================'
+cat "${CONFIG_TEMPLATE_FILENAME}"
+
+CERTIFICATE_KEY="${CERTIFICATE_KEY}" \
+  JOIN_TOKEN="${JOIN_TOKEN}" \
+  CLUSTER_NAME="${CLUSTER_NAME}" \
+  POD_SUBNET="${POD_SUBNET}" \
+  SERVICE_SUBNET="${SERVICE_SUBNET}" \
+  CONTROL_PLANE_LOAD_BALANCER="${CONTROL_PLANE_LOAD_BALANCER}" \
+  NODE_NAME="$(hostname)" \
+  HOST_IP="$(tailscale ip -4)" \
+  envsubst \
+  < "${CONFIG_TEMPLATE_FILENAME}" \
+  > "${HOME}/kubeadm-init-config.yaml"
+
+sudo kubeadm init \
+  --config "${HOME}/kubeadm-init-config.yaml" \
+  --upload-certs \
+  --skip-token-print \
+  --skip-certificate-key-print
+rm --force "${HOME}/kubeadm-init-config.yaml"
+```
+
+## Set Up Kubernetes Config
+
+```bash
+rm --force --recursive "${HOME}/.kube"
+mkdir --parents "${HOME}/.kube"
+
+sudo cp /etc/kubernetes/admin.conf "${HOME}/.kube/config"
+sudo chown "$(id --user):$(id --group)" "${HOME}/.kube/config"
+```
+
+## Label the Newly Added Node with `tailsk8s` Label(s)
+
+```bash
+ADVERTISE_SUBNET="..."
+
+kubectl label node \
+  "$(hostname)" \
+  "tailsk8s.io/advertise-subnet=${ADVERTISE_SUBNET/\//__}"
+```
+
+## Kubernetes Cluster Bootstrap (After)
+
+See [Token-based discovery with CA pinning][7].
+
+```bash
+openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt \
+  | openssl rsa -pubin -outform der 2>/dev/null \
+  | openssl dgst -sha256 -hex \
+  | sed 's/^.* //' \
+  > "${K8S_BOOTSTRAP_DIR}/ca-cert-hash.txt"
+chmod 444 "${K8S_BOOTSTRAP_DIR}/ca-cert-hash.txt"
+
+rm --force "${K8S_BOOTSTRAP_DIR}/kube-config.yaml"
+cp "${HOME}/.kube/config" "${K8S_BOOTSTRAP_DIR}/kube-config.yaml"
+chmod 444 "${K8S_BOOTSTRAP_DIR}/kube-config.yaml"
+```
+
+---
+
+Next: [Configure CNI Networking for Tailscale][1]
+
+[1]: 09-tailscale-cni.md
+[2]: _bin/k8s-primary-init.sh
+[3]: 07-provision-load-balancer.md
+[4]: _templates/kubeadm-init-config.yaml
+[5]: https://github.com/kubernetes/kubernetes/blob/v1.22.4/cmd/kubeadm/app/apis/kubeadm/types.go
+[6]: https://kubernetes.io/docs/reference/config-api/kubeadm-config.v1beta3/
+[7]: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-join/#token-based-discovery-with-ca-pinning
+[8]: https://tailscale.com/kb/1015/100.x-addresses/

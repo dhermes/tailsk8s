@@ -45,7 +45,7 @@ CONTROL_PLANE_LOAD_BALANCER="${5}"
 CURRENT_HOSTNAME="$(hostname)"
 OWNER_GROUP="$(id --user):$(id --group)"
 HOST_IP="$(tailscale ip -4)"
-K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
+K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
 TAILSCALE_API_KEY_FILENAME="${K8S_BOOTSTRAP_DIR}/tailscale-api-key"
 CONFIG_TEMPLATE_FILENAME="${K8S_BOOTSTRAP_DIR}/kubeadm-init-config.yaml"
 
@@ -165,7 +165,7 @@ mkdir --parents "${HOME}/.kube"
 sudo cp /etc/kubernetes/admin.conf "${HOME}/.kube/config"
 sudo chown "${OWNER_GROUP}" "${HOME}/.kube/config"
 
-## Label the newly added node with `tailsk8s`` label(s)
+## Label the newly added node with `tailsk8s` label(s)
 
 kubectl label node \
   "${CURRENT_HOSTNAME}" \

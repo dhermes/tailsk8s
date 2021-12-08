@@ -35,7 +35,7 @@ TAILSCALE_AUTHKEY_FILENAME="${1}"
 CURRENT_USER="$(whoami)"
 CURRENT_HOSTNAME="$(hostname)"
 OWNER_GROUP="$(id --user):$(id --group)"
-K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
+K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
 
 ## Ensure Tailscale Auth Key file exists
 

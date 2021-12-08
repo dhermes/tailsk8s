@@ -92,7 +92,7 @@ sudo usermod --append --groups docker "$(whoami)"
 ## Prepare Configuration Bootstrap Directory
 
 ```bash
-K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
+K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
 
 sudo rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
 sudo mkdir --parents "${K8S_BOOTSTRAP_DIR}"

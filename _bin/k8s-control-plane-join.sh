@@ -33,7 +33,7 @@ ADVERTISE_SUBNET="${1}"
 
 CURRENT_HOSTNAME="$(hostname)"
 HOST_IP="$(tailscale ip -4)"
-K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
+K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
 CA_CERT_HASH="sha256:$(cat "${K8S_BOOTSTRAP_DIR}/ca-cert-hash.txt")"
 CERTIFICATE_KEY="$(cat "${K8S_BOOTSTRAP_DIR}/certificate-key.txt")"
 CONTROL_PLANE_LOAD_BALANCER="$(cat "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt")"

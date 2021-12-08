@@ -30,7 +30,7 @@ fi
 
 ## Computed Variables
 
-K8S_BOOTSTRAP_DIR="/var/data/tailsk8s-bootstrap"
+K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
 
 ## Generate and Store a New Join Token
 
