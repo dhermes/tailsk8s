@@ -17,6 +17,7 @@ both Kubernetes and Tailscale, you can go directly to
 
 - [Prerequisites][11]
 - [Prepare Tailscale Keys][12]
+- [New Machine: Allow SSH in from Jump Host][14]
 - [Configure CNI Networking for Tailscale][19]
 - [Smoke Test][23]
 - [Add an AWS EC2 VM to the Kubernetes Cluster][24]
@@ -82,6 +83,7 @@ Logos and Images Attributions:
 [9]: https://github.com/prabhatsharma/kubernetes-the-hard-way-aws/tree/c4872b83989562a35e9aba98ff92526a0f1498ca
 [11]: 01-prerequisites.md
 [12]: 02-prepare-tailscale-keys.md
+[14]: 04-allow-ssh.md
 [19]: 09-tailscale-cni.md
 [23]: 13-smoke-test.md
 [24]: 14-add-vm-aws.md

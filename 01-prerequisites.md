@@ -1,6 +1,6 @@
 # Prerequisites
 
-We'll be coordinating everything from a "jump host". The "jump host" is the
+We'll be coordinating everything from a **jump host**. The jump host is the
 primary computer used to administer all of the machines in the Kubernetes
 cluster. We'll lock down all of our Kubernetes nodes so that they are **only**
 reachable via the Tailnet, so the jump host also needs to be in the Tailnet.

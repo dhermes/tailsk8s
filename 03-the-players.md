@@ -1,15 +1,15 @@
 # The Players
 
+To add a bit of color, I'll introduce the bare metal machines (names included)
+below. This is specific to my personal cluster and so isn't necessary reading
+to understand the rest of the readings. If you prefer, you can skip this and
+jump to [New Machine: Allow SSH in from Jump Host][14].
+
 ## Jump Host
 
 <p align="center">
   <img src="./_images/suspicious-hawking.jpg?raw=true" />
 </p>
-
-The "jump host" is the primary computer I'll be using to administer all of the
-machines in the Kubernetes cluster. We'll lock down all of our Kubernetes
-nodes so that they are **only** reachable via the Tailnet, so the jump host
-also needs to be in the Tailnet.
 
 This machine is a 2021 [ASUS VivoBook][1] running Windows. It's my current
 development machine and more importantly, my first time running Windows
@@ -17,7 +17,7 @@ since 2010. The WSL2 experience lets me pretend I am in Linux when coding
 and for "consumer" type applications the Windows 11 experience has great
 polish. (I will say WSL2 has **some** limitations, in particular on this
 project having no access to a `tailscaled.sock` UDS and having no `systemd`
-were both limiting.)
+both required some imagination.)
 
 ## Cluster
 
@@ -161,6 +161,10 @@ When "someone else's computer" is [GCP GCE][10] we use a `e2-micro`
 - `relaxed-bouman`
 - `agitated-feistel`
 
+---
+
+Next: [New Machine: Allow SSH in from Jump Host][14]
+
 [1]: https://www.amazon.com/gp/product/B01G1RUQHW/
 [2]: https://github.com/moby/moby/blob/v20.10.11/pkg/namesgenerator/names-generator.go
 [3]: https://en.wikipedia.org/wiki/Rob_Pike
@@ -174,3 +178,4 @@ When "someone else's computer" is [GCP GCE][10] we use a `e2-micro`
 [11]: https://cloud.google.com/compute/docs/general-purpose-machines
 [12]: https://support.apple.com/kb/SP619
 [13]: https://www.amazon.com/gp/product/B00OAJ412U/
+[14]: 04-allow-ssh.md
