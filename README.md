@@ -96,7 +96,7 @@ Logos and Images Attributions:
 [18]: 08-initialize-cluster.md
 [19]: 09-tailscale-cni.md
 [20]: 10-adding-control-plane-node.md
-[21]: 11-add-worker.md
+[21]: 11-add-worker-node.md
 [22]: 12-smoke-test.md
 [23]: 13-add-vm-aws.md
 [24]: 14-add-vm-gcp.md

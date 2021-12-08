@@ -156,7 +156,7 @@ pedantic-yonath   Ready    control-plane,master   18m10s  v1.22.4
 
 Next: [Adding a Worker Node][1]
 
-[1]: 11-add-worker.md
+[1]: 11-add-worker-node.md
 [2]: _bin/k8s-control-plane-join.sh
 [3]: _templates/kubeadm-control-plane-join-config.yaml
 [4]: 09-tailscale-cni.md
