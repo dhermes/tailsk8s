@@ -81,7 +81,7 @@ chmod 444 "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 JOIN_TOKEN="$(cat "${K8S_BOOTSTRAP_DIR}/join-token.txt")"
 CERTIFICATE_KEY="$(cat "${K8S_BOOTSTRAP_DIR}/certificate-key.txt")"
 
-## CNI via Kubenet (basic bridge mode)
+## CNI via `kubenet` (basic bridge mode)
 #### See:
 #### - https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/79a3f79b27bd28f82f071bb877a266c2e62ee506/docs/09-bootstrapping-kubernetes-workers.md#configure-cni-networking
 #### - https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/#kubenet

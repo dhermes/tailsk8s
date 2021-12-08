@@ -107,7 +107,7 @@ echo "${CONTROL_PLANE_LOAD_BALANCER}" > "${K8S_BOOTSTRAP_DIR}/control-plane-load
 chmod 444 "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 ```
 
-## CNI via Kubenet
+## CNI via `kubenet`
 
 This is a core part of bringing up the node (and cluster), but it is a very
 involved topic. We'll save this for the next section:
@@ -122,8 +122,8 @@ cluster configuration as YAML (vs. via flags). See the
 
 ```bash
 CONFIG_TEMPLATE_FILENAME=/var/data/tailsk8s-bootstrap/kubeadm-init-config.yaml
-JOIN_TOKEN="$(cat "${K8S_BOOTSTRAP_DIR}/join-token.txt")"
 CERTIFICATE_KEY="$(cat "${K8S_BOOTSTRAP_DIR}/certificate-key.txt")"
+JOIN_TOKEN="$(cat "${K8S_BOOTSTRAP_DIR}/join-token.txt")"
 CLUSTER_NAME="..."
 POD_SUBNET="..."
 SERVICE_SUBNET="..."
@@ -151,6 +151,44 @@ sudo kubeadm init \
   --skip-certificate-key-print
 rm --force "${HOME}/kubeadm-init-config.yaml"
 ```
+
+The template contains information about the current node and contains some
+of the secure tokens we generated above to allow other nodes to join the
+cluster:
+
+```yaml
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+bootstrapTokens:
+  - token: ${JOIN_TOKEN}
+    description: kubeadm bootstrap token
+localAPIEndpoint:
+  advertiseAddress: ${HOST_IP}
+  bindPort: 6443
+certificateKey: ${CERTIFICATE_KEY}
+nodeRegistration:
+  name: ${NODE_NAME}
+  kubeletExtraArgs:
+    node-ip: ${HOST_IP}
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+kubernetesVersion: v1.22.4
+clusterName: ${CLUSTER_NAME}
+controlPlaneEndpoint: ${CONTROL_PLANE_LOAD_BALANCER}:6443
+networking:
+  dnsDomain: cluster.local
+  podSubnet: ${POD_SUBNET}
+  serviceSubnet: ${SERVICE_SUBNET}
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd
+```
+
+Note the usage of the `--node-ip` extra `kubelet` argument. This is to ensure
+the Tailscale IP is used vs. a local IP (e.g. `192.168.7.131`). See
+[`kubeadm init/join` and ExternalIP vs InternalIP][9] for more details.
 
 ## Set Up Kubernetes Config
 
@@ -221,3 +259,4 @@ Next: [Configure CNI Networking for Tailscale][1]
 [6]: https://kubernetes.io/docs/reference/config-api/kubeadm-config.v1beta3/
 [7]: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-join/#token-based-discovery-with-ca-pinning
 [8]: https://tailscale.com/kb/1015/100.x-addresses/
+[9]: https://medium.com/@aleverycity/kubeadm-init-join-and-externalip-vs-internalip-519519ddff89
