@@ -15,6 +15,7 @@ both Kubernetes and Tailscale, you can go directly to
 
 ## Labs
 
+- [Prerequisites][11]
 - [Tailscale Admin][12]
 - [Configure CNI Networking for Tailscale][19]
 - [Smoke Test][23]
@@ -79,6 +80,7 @@ Logos and Images Attributions:
 [7]: https://github.com/alaslums
 [8]: https://linkedin.com/in/layachi-khodja-38428a1
 [9]: https://github.com/prabhatsharma/kubernetes-the-hard-way-aws/tree/c4872b83989562a35e9aba98ff92526a0f1498ca
+[11]: 01-prerequisites.md
 [12]: 02-prepare-tailscale-keys.md
 [19]: 09-tailscale-cni.md
 [23]: 13-smoke-test.md
