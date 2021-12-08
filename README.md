@@ -8,8 +8,8 @@
   <img src="./_images/tailsk8s-logos.png?raw=true" />
 </p>
 
-This project walks through setting up a bare metal [Kubernetes][27] cluster
-that uses [Tailscale][28] for networking. For readers already familiar with
+This project walks through setting up a bare metal [Kubernetes][26] cluster
+that uses [Tailscale][27] for networking. For readers already familiar with
 both Kubernetes and Tailscale, you can go directly to
 [Configure CNI Networking for Tailscale][19].
 
@@ -24,10 +24,10 @@ both Kubernetes and Tailscale, you can go directly to
 - [Initialize Cluster][18]
 - [Configure CNI Networking for Tailscale][19]
 - [Adding a New Control Plane Node][20]
-- [Smoke Test][23]
-- [Add an AWS EC2 VM to the Kubernetes Cluster][24]
-- [Add a GCP GCE Instance to the Kubernetes Cluster][25]
-- [Cleaning Up][26]
+- [Smoke Test][22]
+- [Add an AWS EC2 VM to the Kubernetes Cluster][23]
+- [Add a GCP GCE Instance to the Kubernetes Cluster][24]
+- [Cleaning Up][25]
 
 ## Terms and Definitions
 
@@ -95,9 +95,9 @@ Logos and Images Attributions:
 [18]: 08-initialize-cluster.md
 [19]: 09-tailscale-cni.md
 [20]: 10-adding-control-plane-node.md
-[23]: 13-smoke-test.md
-[24]: 14-add-vm-aws.md
-[25]: 15-add-vm-gcp.md
-[26]: 16-cleaning-up.md
-[27]: https://kubernetes.io/
-[28]: https://tailscale.com/
+[22]: 12-smoke-test.md
+[23]: 13-add-vm-aws.md
+[24]: 14-add-vm-gcp.md
+[25]: 15-cleaning-up.md
+[26]: https://kubernetes.io/
+[27]: https://tailscale.com/
