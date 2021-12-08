@@ -123,6 +123,8 @@ sudo tailscale-advertise \
   --cidr "${ADVERTISE_SUBNET}"
 ```
 
+## Extra Credit: Subnet Routing in Action
+
 When a node's pod subnet is advertised, Kubernetes and Tailscale will
 collaborate to route packets to the right place:
 
