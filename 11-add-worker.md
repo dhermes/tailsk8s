@@ -1,4 +1,4 @@
-# Add Workers
+# Adding a Worker Node
 
 ## First Worker
 
