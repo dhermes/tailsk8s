@@ -9,7 +9,7 @@ to do the **bare minimum** to get SSH access from the jump host and nothing
 more.
 
 If you have an external storage device, just copy `bootstrap-ssh-bare-metal.sh`
-[script][1] and a `.extra_authorized_keys` file onto the machine and run the
+[script][1] and an `.extra_authorized_keys` file onto the machine and run the
 script. If not, we'll use `netcat` to send the `.extra_authorized_keys` file
 over the network (be sure to validate after receiving).
 
@@ -66,11 +66,11 @@ echo thanks | netcat -l "${NETCAT_LISTEN_PORT}" -b > "${HOME}/.extra_authorized_
 Then from the jump host, send the extra authorized keys. For example:
 
 ```bash
-EXTRA_AUTHORIZED_KEYS=.extra_authorized_keys
+EXTRA_AUTHORIZED_KEYS_FILENAME=.extra_authorized_keys
 LOCAL_IP=192.168.7.131
 NETCAT_LISTEN_PORT=9107
 
-cat "${EXTRA_AUTHORIZED_KEYS}" | netcat -q 1 "${LOCAL_IP}" "${NETCAT_LISTEN_PORT}"
+cat "${EXTRA_AUTHORIZED_KEYS_FILENAME}" | netcat -q 1 "${LOCAL_IP}" "${NETCAT_LISTEN_PORT}"
 ```
 
 ### Add Extra Authorized Key(s) to SSH Configuration
@@ -101,13 +101,17 @@ rm --force "${HOME}/.extra_authorized_keys"
 ### Validate SSH Connection from the Jump Host
 
 ```bash
-REMOTE_USERNAME=dhermes
-LOCAL_IP=192.168.7.131
+SSH_TARGET=dhermes@192.168.7.131
 
-ssh "${REMOTE_USERNAME}@${LOCAL_IP}"
+ssh "${SSH_TARGET}"
 ```
 
 Once this connection has been confirmed, you can start to `scp` files over
 to the new machine as needed and then use SSH sessions to run the scripts.
 
+---
+
+Next: [Bringing up a New Machine][2]
+
 [1]: _bin/bootstrap-ssh-bare-metal.sh
+[2]: 05-new-machine.md

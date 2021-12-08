@@ -129,19 +129,6 @@ sudo rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
 sudo mkdir --parents "${K8S_BOOTSTRAP_DIR}"
 sudo chown "${OWNER_GROUP}" "${K8S_BOOTSTRAP_DIR}"
 
-## Join Tailnet and remove the Tailscale Auth Key.
-#### NOTE: For Tailnets where new devices must be manually authorized, the
-####       `tailscale up` command will block until the current host is
-####       authorized. The current host can be authorized in the web UI or the
-####       `tailscale-authorize-linux-amd64-*` binary can be used to authorize
-####       from the command line.
-
-echo "Adding host ${CURRENT_HOSTNAME} to Tailnet..."
-sudo tailscale up --authkey "file:${TAILSCALE_AUTHKEY_FILENAME}"
-rm --force "${TAILSCALE_AUTHKEY_FILENAME}"
-
-echo "IPv4 address in Tailnet: $(tailscale ip -4)"
-
 ## Enable IP Forwarding for Tailscale
 #### https://tailscale.com/kb/1104/enable-ip-forwarding/
 
@@ -156,6 +143,19 @@ net.ipv6.conf.all.forwarding = 1
 EOF
 
 sudo sysctl --system
+
+## Join Tailnet and remove the Tailscale Auth Key.
+#### NOTE: For Tailnets where new devices must be manually authorized, the
+####       `tailscale up` command will block until the current host is
+####       authorized. The current host can be authorized in the web UI or the
+####       `tailscale-authorize-linux-amd64-*` binary can be used to authorize
+####       from the command line.
+
+echo "Adding host ${CURRENT_HOSTNAME} to Tailnet..."
+sudo tailscale up --authkey "file:${TAILSCALE_AUTHKEY_FILENAME}"
+rm --force "${TAILSCALE_AUTHKEY_FILENAME}"
+
+echo "IPv4 address in Tailnet: $(tailscale ip -4)"
 
 ## Set up `ufw` (Uncomplicated Firewall)
 #### See: https://tailscale.com/kb/1077/secure-server-ubuntu-18-04/

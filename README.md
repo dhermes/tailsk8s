@@ -18,6 +18,7 @@ both Kubernetes and Tailscale, you can go directly to
 - [Prerequisites][11]
 - [Prepare Tailscale Keys][12]
 - [New Machine: Allow SSH in from Jump Host][14]
+- [Bringing up a New Machine][15]
 - [Configure CNI Networking for Tailscale][19]
 - [Smoke Test][23]
 - [Add an AWS EC2 VM to the Kubernetes Cluster][24]
@@ -84,6 +85,7 @@ Logos and Images Attributions:
 [11]: 01-prerequisites.md
 [12]: 02-prepare-tailscale-keys.md
 [14]: 04-allow-ssh.md
+[15]: 05-new-machine.md
 [19]: 09-tailscale-cni.md
 [23]: 13-smoke-test.md
 [24]: 14-add-vm-aws.md

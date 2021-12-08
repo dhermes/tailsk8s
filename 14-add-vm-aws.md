@@ -161,17 +161,17 @@ From the jump host, copy over scripts, SSH `authorized_keys` and a Tailscale
 one-off key for joining the Tailnet:
 
 ```bash
-EXTRA_AUTHORIZED_KEYS=.extra_authorized_keys
-TAILSCALE_ONE_OFF_KEY=tailscale-one-off-key-AA
+EXTRA_AUTHORIZED_KEYS_FILENAME=.extra_authorized_keys
+TAILSCALE_AUTHKEY_FILENAME=tailscale-one-off-key-AA
 
 scp -i ./tailsk8s.id_rsa \
-  "${EXTRA_AUTHORIZED_KEYS}" \
-  "${TAILSCALE_ONE_OFF_KEY}" \
+  "${EXTRA_AUTHORIZED_KEYS_FILENAME}" \
+  "${TAILSCALE_AUTHKEY_FILENAME}" \
   _bin/bootstrap-ssh-cloud-provider.sh \
   _bin/new-machine.sh \
   ubuntu@"${PUBLIC_IP}":~/
 # Once a one-off key has been used, get rid of it
-rm --force "${TAILSCALE_ONE_OFF_KEY}"
+rm --force "${TAILSCALE_AUTHKEY_FILENAME}"
 
 ssh -i ./tailsk8s.id_rsa ubuntu@"${PUBLIC_IP}"
 ```
@@ -182,9 +182,9 @@ we can stop using `tailsk8s.id_rsa`:
 
 ```bash
 TAILSCALE_DEVICE_NAME=interesting-jang
-EXTRA_AUTHORIZED_KEYS=~/.extra_authorized_keys
+EXTRA_AUTHORIZED_KEYS_FILENAME=~/.extra_authorized_keys
 
-./bootstrap-ssh-cloud-provider.sh "${TAILSCALE_DEVICE_NAME}" "${EXTRA_AUTHORIZED_KEYS}"
+./bootstrap-ssh-cloud-provider.sh "${TAILSCALE_DEVICE_NAME}" "${EXTRA_AUTHORIZED_KEYS_FILENAME}"
 rm bootstrap-ssh-cloud-provider.sh
 ```
 
@@ -198,9 +198,9 @@ ssh ubuntu@"${PUBLIC_IP}"
 Now, back on the EC2 VM:
 
 ```bash
-TAILSCALE_ONE_OFF_KEY=~/tailscale-one-off-key-AA
+TAILSCALE_AUTHKEY_FILENAME=~/tailscale-one-off-key-AA
 
-./new-machine.sh "${TAILSCALE_ONE_OFF_KEY}"
+./new-machine.sh "${TAILSCALE_AUTHKEY_FILENAME}"
 rm ./new-machine.sh
 ```
 

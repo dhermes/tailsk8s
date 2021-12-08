@@ -90,17 +90,17 @@ From the jump host, copy over scripts, SSH `authorized_keys` and a Tailscale
 one-off key for joining the Tailnet:
 
 ```bash
-EXTRA_AUTHORIZED_KEYS=.extra_authorized_keys
-TAILSCALE_ONE_OFF_KEY=tailscale-one-off-key-PT
+EXTRA_AUTHORIZED_KEYS_FILENAME=.extra_authorized_keys
+TAILSCALE_AUTHKEY_FILENAME=tailscale-one-off-key-PT
 
 gcloud compute scp \
-  "${EXTRA_AUTHORIZED_KEYS}" \
-  "${TAILSCALE_ONE_OFF_KEY}" \
+  "${EXTRA_AUTHORIZED_KEYS_FILENAME}" \
+  "${TAILSCALE_AUTHKEY_FILENAME}" \
   _bin/bootstrap-ssh-cloud-provider.sh \
   _bin/new-machine.sh \
   ubuntu@"${TAILSCALE_DEVICE_NAME}":~/
 # Once a one-off key has been used, get rid of it
-rm --force "${TAILSCALE_ONE_OFF_KEY}"
+rm --force "${TAILSCALE_AUTHKEY_FILENAME}"
 
 gcloud compute ssh ubuntu@"${TAILSCALE_DEVICE_NAME}"
 ```
@@ -111,9 +111,9 @@ doing SSH over Tailscale):
 
 ```bash
 TAILSCALE_DEVICE_NAME=agitated-feistel
-EXTRA_AUTHORIZED_KEYS=~/.extra_authorized_keys
+EXTRA_AUTHORIZED_KEYS_FILENAME=~/.extra_authorized_keys
 
-./bootstrap-ssh-cloud-provider.sh "${TAILSCALE_DEVICE_NAME}" "${EXTRA_AUTHORIZED_KEYS}"
+./bootstrap-ssh-cloud-provider.sh "${TAILSCALE_DEVICE_NAME}" "${EXTRA_AUTHORIZED_KEYS_FILENAME}"
 rm bootstrap-ssh-cloud-provider.sh
 ```
 
@@ -127,9 +127,9 @@ ssh ubuntu@"${PUBLIC_IP}"
 Now, back on the GCE instance:
 
 ```bash
-TAILSCALE_ONE_OFF_KEY=~/tailscale-one-off-key-PT
+TAILSCALE_AUTHKEY_FILENAME=~/tailscale-one-off-key-PT
 
-./new-machine.sh "${TAILSCALE_ONE_OFF_KEY}"
+./new-machine.sh "${TAILSCALE_AUTHKEY_FILENAME}"
 rm ./new-machine.sh
 ```
 
