@@ -8,6 +8,20 @@
   <img src="./_images/tailsk8s-logos.png?raw=true" />
 </p>
 
+This project walks through setting up a bare metal [Kubernetes][27] cluster
+that uses [Tailscale][28] for networking. For readers already familiar with
+both Kubernetes and Tailscale, you can go directly to
+[Configure CNI Networking for Tailscale][19].
+
+## Labs
+
+- [Tailscale Admin][12]
+- [Configure CNI Networking for Tailscale][19]
+- [Smoke Test][23]
+- [Add an AWS EC2 VM to the Kubernetes Cluster][24]
+- [Add a GCP GCE Instance to the Kubernetes Cluster][25]
+- [Cleaning Up][26]
+
 ## Terms and Definitions
 
 - **Bare Metal**: this is primarily intended to mean "**not** virtualized",
@@ -65,3 +79,11 @@ Logos and Images Attributions:
 [7]: https://github.com/alaslums
 [8]: https://linkedin.com/in/layachi-khodja-38428a1
 [9]: https://github.com/prabhatsharma/kubernetes-the-hard-way-aws/tree/c4872b83989562a35e9aba98ff92526a0f1498ca
+[12]: 02-prepare-tailscale-keys.md
+[19]: 09-tailscale-cni.md
+[23]: 13-smoke-test.md
+[24]: 14-add-vm-aws.md
+[25]: 15-add-vm-gcp.md
+[26]: 16-cleaning-up.md
+[27]: https://kubernetes.io/
+[28]: https://tailscale.com/

@@ -1,4 +1,4 @@
-# Clean Up
+# Cleaning Up
 
 ## Bare Metal
 

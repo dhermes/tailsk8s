@@ -9,6 +9,11 @@ CNI and just defer to an "external party" to [handle our routes][2]:
 > up routing rules for communication between nodes, or in single-node
 > environments.
 
+The code snippets below are contained in all of the helper scripts that
+involve adding a new Kubernetes node: the `k8s-primary-init.sh` [script][8],
+`k8s-control-plane-join.sh` [script][7] and
+`k8s-worker-join.sh` [script][9].
+
 ## Configuration
 
 Create the `bridge` network configuration file:
@@ -84,6 +89,8 @@ done
 ```
 
 ## Tailscale
+
+> Hat tip to the `tailscale-cni` [project][10] for ideas here.
 
 The fact that `kubenet` doesn't handle
 "more advanced features like cross-node networking or network policy" is
@@ -314,3 +321,7 @@ Disabled route 10.100.2.0/24 for device 23563742208244416
 [4]: https://github.com/prabhatsharma/kubernetes-the-hard-way-aws/blob/c4872b83989562a35e9aba98ff92526a0f1498ca/docs/11-pod-network-routes.md#the-routing-table-and-routes
 [5]: https://tailscale.com/kb/1019/subnets/
 [6]: https://github.com/tailscale/tailscale/blob/v1.18.1/api.md
+[7]: _bin/k8s-control-plane-join.sh
+[8]: _bin/k8s-primary-init.sh
+[9]: _bin/k8s-worker-join.sh
+[10]: https://github.com/rmb938/tailscale-cni/blob/dba6992227958e61ac85b3168dbcae4ff10dde57/main.go#L165
