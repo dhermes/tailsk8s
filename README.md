@@ -23,6 +23,7 @@ both Kubernetes and Tailscale, you can go directly to
 - [Provision Load Balancer][17]
 - [Initialize Cluster][18]
 - [Configure CNI Networking for Tailscale][19]
+- [Adding a New Control Plane Node][20]
 - [Smoke Test][23]
 - [Add an AWS EC2 VM to the Kubernetes Cluster][24]
 - [Add a GCP GCE Instance to the Kubernetes Cluster][25]
@@ -93,6 +94,7 @@ Logos and Images Attributions:
 [17]: 07-provision-load-balancer.md
 [18]: 08-initialize-cluster.md
 [19]: 09-tailscale-cni.md
+[20]: 10-adding-control-plane-node.md
 [23]: 13-smoke-test.md
 [24]: 14-add-vm-aws.md
 [25]: 15-add-vm-gcp.md

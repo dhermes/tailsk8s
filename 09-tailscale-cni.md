@@ -315,6 +315,10 @@ Disabling route 10.100.2.0/24 for device 23563742208244416...
 Disabled route 10.100.2.0/24 for device 23563742208244416
 ```
 
+---
+
+Next: [Adding a New Control Plane Node][11]
+
 [1]: https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/79a3f79b27bd28f82f071bb877a266c2e62ee506/docs/09-bootstrapping-kubernetes-workers.md#configure-cni-networking
 [2]: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/#kubenet
 [3]: https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/79a3f79b27bd28f82f071bb877a266c2e62ee506/docs/11-pod-network-routes.md#routes
@@ -325,3 +329,4 @@ Disabled route 10.100.2.0/24 for device 23563742208244416
 [8]: _bin/k8s-primary-init.sh
 [9]: _bin/k8s-worker-join.sh
 [10]: https://github.com/rmb938/tailscale-cni/blob/dba6992227958e61ac85b3168dbcae4ff10dde57/main.go#L165
+[11]: 10-adding-control-plane-node.md
