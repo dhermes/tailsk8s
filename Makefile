@@ -17,10 +17,11 @@ help:
 	@echo 'Makefile for the `tailsk8s` project'
 	@echo ''
 	@echo 'Usage:'
-	@echo '   make tailscale-advertise-linux-amd64    Build static `tailscale-advertise` binary for linux/amd64'
-	@echo '   make tailscale-authorize-linux-amd64    Build static `tailscale-authorize` binary for linux/amd64'
-	@echo '   make tailscale-withdraw-linux-amd64     Build static `tailscale-withdraw` binary for linux/amd64'
-	@echo '   make release                            Build all static binaries'
+	@echo '   make tailscale-advertise-linux-amd64      Build static `tailscale-advertise` binary for linux/amd64'
+	@echo '   make tailscale-authorize-linux-amd64      Build static `tailscale-authorize` binary for linux/amd64'
+	@echo '   make tailscale-authorize-windows-amd64    Build static `tailscale-authorize` binary for windows/amd64'
+	@echo '   make tailscale-withdraw-linux-amd64       Build static `tailscale-withdraw` binary for linux/amd64'
+	@echo '   make release                              Build all static binaries'
 	@echo ''
 
 ################################################################################
@@ -48,6 +49,12 @@ tailscale-authorize-linux-amd64: _require-upx _require-version
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -installsuffix static -o "./_bin/tailscale-authorize-linux-amd64-$(VERSION)" ./cmd/tailscale-authorize/
 	upx -q -9 "./_bin/tailscale-authorize-linux-amd64-$(VERSION)"
 
+.PHONY: tailscale-authorize-windows-amd64
+tailscale-authorize-windows-amd64: _require-upx _require-version
+	rm -f "./_bin/tailscale-authorize-windows-amd64-"*
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -installsuffix static -o "./_bin/tailscale-authorize-windows-amd64-$(VERSION).exe" ./cmd/tailscale-authorize/
+	upx -q -9 "./_bin/tailscale-authorize-windows-amd64-$(VERSION).exe"
+
 .PHONY: tailscale-withdraw-linux-amd64
 tailscale-withdraw-linux-amd64: _require-upx _require-version
 	rm -f "./_bin/tailscale-withdraw-linux-amd64-"*
@@ -55,7 +62,7 @@ tailscale-withdraw-linux-amd64: _require-upx _require-version
 	upx -q -9 "./_bin/tailscale-withdraw-linux-amd64-$(VERSION)"
 
 .PHONY: release
-release: tailscale-advertise-linux-amd64 tailscale-authorize-linux-amd64 tailscale-withdraw-linux-amd64
+release: tailscale-advertise-linux-amd64 tailscale-authorize-linux-amd64 tailscale-authorize-windows-amd64 tailscale-withdraw-linux-amd64
 
 ################################################################################
 # Doctor Commands (these do not show up in `make help`)
