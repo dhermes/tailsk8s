@@ -182,8 +182,12 @@ scp \
   _templates/httpbin.manifest.yaml \
   ubuntu@"${TAILSCALE_DEVICE_NAME}":~/
 scp \
-  k8s-bootstrap-shared/* \
-  _templates/kubeadm* \
+  k8s-bootstrap-shared/ca-cert-hash.txt \
+  k8s-bootstrap-shared/control-plane-load-balancer.txt \
+  k8s-bootstrap-shared/join-token.txt \
+  k8s-bootstrap-shared/kube-config.yaml \
+  k8s-bootstrap-shared/tailscale-api-key \
+  _templates/kubeadm-worker-join-config.yaml \
   ubuntu@"${TAILSCALE_DEVICE_NAME}":/var/data/tailsk8s-bootstrap/
 
 ssh ubuntu@"${TAILSCALE_DEVICE_NAME}"
