@@ -189,6 +189,26 @@ cp "${HOME}/.kube/config" "${K8S_BOOTSTRAP_DIR}/kube-config.yaml"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/kube-config.yaml"
 ```
 
+## Verify
+
+On the newly added control plane node:
+
+```
+$ kubectl get nodes
+NAME              STATUS   ROLES                  AGE     VERSION
+pedantic-yonath   Ready    control-plane,master   5m47s   v1.22.4
+```
+
+Similarly, once `kube-config.yaml` has been copied onto the jump host, we
+can also verify that the jump host can query the Kubernetes API via the
+load balancer:
+
+```
+$ kubectl --kubeconfig k8s-bootstrap-shared/kube-config.yaml get nodes
+NAME              STATUS   ROLES                  AGE     VERSION
+pedantic-yonath   Ready    control-plane,master   6m22s   v1.22.4
+```
+
 ---
 
 Next: [Configure CNI Networking for Tailscale][1]
