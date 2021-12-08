@@ -19,7 +19,7 @@ discovery:
     apiServerEndpoint: ${CONTROL_PLANE_LOAD_BALANCER}:6443
     token: ${JOIN_TOKEN}
     caCertHashes:
-    - ${CA_CERT_HASH}
+      - ${CA_CERT_HASH}
 nodeRegistration:
   name: ${NODE_NAME}
   kubeletExtraArgs:

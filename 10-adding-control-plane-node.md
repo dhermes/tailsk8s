@@ -17,9 +17,8 @@ these from the jump host):
 - `/var/data/tailsk8s-bootstrap/kube-config.yaml`
 - `/var/data/tailsk8s-bootstrap/tailscale-api-key`
 
-To actually bring up the cluster, copy over the inputs from the jump host,
-run the script on the control plane node and then copy back the outputs to
-the jump host:
+To actually join the cluster, copy over the inputs from the jump host,
+and then run the script on the control plane node:
 
 ```bash
 SSH_TARGET=dhermes@eager-jennings
@@ -78,6 +77,9 @@ cp "${K8S_BOOTSTRAP_DIR}/kube-config.yaml" "${HOME}/.kube/config"
 See [Configure CNI Networking for Tailscale][4].
 
 ## Join the Cluster with `kubeadm`
+
+We use the `kubeadm-control-plane-join-config.yaml` [template][3] to fully
+specify the join configuration as YAML (vs. via flags).
 
 ```bash
 CONFIG_TEMPLATE_FILENAME=/var/data/tailsk8s-bootstrap/kubeadm-control-plane-join-config.yaml
@@ -151,8 +153,6 @@ pedantic-yonath   Ready    control-plane,master   18m10s  v1.22.4
 ```
 
 ---
-
-`kubeadm-control-plane-join-config.yaml` [template][3]
 
 Next: [Adding a Worker Node][1]
 

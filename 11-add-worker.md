@@ -1,146 +1,150 @@
 # Adding a Worker Node
 
-## First Worker
+Adding a worker node looks roughly the same as added a control plane node.
+However, a worker doesn't need to **sign** certificates, so doesn't need access
+to the cluster CA private keys. As with control plane nodes, the
+`k8s-worker-join.sh` [script][2] requires **only** one argument:
 
-```
-$ scp _bin/k8s-worker-join.sh dhermes@nice-mcclintock:~/
-k8s-worker-join.sh                                 100% 3532   385.3KB/s   00:00
-$ scp k8s-bootstrap-shared/* dhermes@nice-mcclintock:/var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt                                   100%   65    14.1KB/s   00:00
-certificate-key.txt                                100%   65    23.8KB/s   00:00
-control-plane-load-balancer.txt                    100%   15     0.9KB/s   00:00
-join-token.txt                                     100%   24     8.4KB/s   00:00
-kube-config.yaml                                   100% 5642   275.1KB/s   00:00
-tailscale-api-key                                  100%   40    13.4KB/s   00:00
-$ scp _templates/kubeadm* dhermes@nice-mcclintock:/var/data/tailsk8s-bootstrap/
-kubeadm-control-plane-join-config.yaml             100%  996   353.9KB/s   00:00
-kubeadm-init-config.yaml                           100% 1276   163.3KB/s   00:00
-kubeadm-worker-join-config.yaml                    100%  873   206.2KB/s   00:00
-$ scp _bin/tailscale-advertise-linux-amd64-* dhermes@nice-mcclintock:~/
-tailscale-advertise-linux-amd64-v1.20211203.1      100% 2427KB   6.2MB/s   00:00
-$
-$ ssh dhermes@nice-mcclintock
-dhermes@nice-mcclintock:~$ sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
-[sudo] password for dhermes:
-dhermes@nice-mcclintock:~$ ls -1 /var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt
-certificate-key.txt
-control-plane-load-balancer.txt
-join-token.txt
-kubeadm-control-plane-join-config.yaml
-kubeadm-init-config.yaml
-kubeadm-worker-join-config.yaml
-kube-config.yaml
-tailscale-api-key
-dhermes@nice-mcclintock:~$
-dhermes@nice-mcclintock:~$ ./k8s-worker-join.sh '10.100.2.0/24'
-+ '[' 1 -ne 1 ']'
-+ ADVERTISE_SUBNET=10.100.2.0/24
-++ hostname
-+ CURRENT_HOSTNAME=nice-mcclintock
-++ tailscale ip -4
-+ HOST_IP=100.70.213.118
-+ K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
-++ cat /var/data/tailsk8s-bootstrap/ca-cert-hash.txt
-...
-* Certificate signing request was sent to apiserver and a response was received.
-* The Kubelet was informed of the new secure connection details.
+- `ADVERTISE_SUBNET`: The subnet used for pods on this node.
 
-Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+and the script assumes the presence of roughly the same set of files:
 
-+ rm --force /home/dhermes/kubeadm-join-config.yaml
-dhermes@nice-mcclintock:~$
-dhermes@nice-mcclintock:~$ kubectl get nodes --output wide
-NAME              STATUS   ROLES                  AGE   VERSION   INTERNAL-IP       EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
-eager-jennings    Ready    control-plane,master   10m   v1.22.4   100.109.83.23     <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-nice-mcclintock   Ready    <none>                 61s   v1.22.4   100.70.213.118    <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-pedantic-yonath   Ready    control-plane,master   27m   v1.22.4   100.110.217.104   <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-dhermes@nice-mcclintock:~$ rm k8s-worker-join.sh
-dhermes@nice-mcclintock:~$ ls -1 /var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt
-certificate-key.txt
-control-plane-load-balancer.txt
-join-token.txt
-kubeadm-control-plane-join-config.yaml
-kubeadm-init-config.yaml
-kubeadm-worker-join-config.yaml
-kube-config.yaml
-tailscale-api-key
-dhermes@nice-mcclintock:~$ exit
-logout
-Connection to nice-mcclintock closed.
+- `/var/data/tailsk8s-bootstrap/ca-cert-hash.txt`
+- `/var/data/tailsk8s-bootstrap/control-plane-load-balancer.txt`
+- `/var/data/tailsk8s-bootstrap/join-token.txt`
+- `/var/data/tailsk8s-bootstrap/kubeadm-worker-join-config.yaml`
+- `/var/data/tailsk8s-bootstrap/kube-config.yaml`
+- `/var/data/tailsk8s-bootstrap/tailscale-api-key`
+
+To actually join the cluster, copy over the inputs from the jump host,
+run the script on the worker node:
+
+```bash
+SSH_TARGET=dhermes@nice-mcclintock
+
+scp \
+  _bin/k8s-worker-join.sh \
+  _bin/tailscale-advertise-linux-amd64-* \
+  "${SSH_TARGET}":~/
+scp \
+  k8s-bootstrap-shared/ca-cert-hash.txt \
+  k8s-bootstrap-shared/control-plane-load-balancer.txt \
+  k8s-bootstrap-shared/join-token.txt \
+  k8s-bootstrap-shared/kube-config.yaml \
+  k8s-bootstrap-shared/tailscale-api-key \
+  _templates/kubeadm-worker-join-config.yaml \
+  "${SSH_TARGET}":/var/data/tailsk8s-bootstrap
+
+ssh "${SSH_TARGET}"
 ```
 
-## Second Worker
+On the new worker node (e.g. on `nice-mcclintock`):
+
+```bash
+ADVERTISE_SUBNET=10.100.2.0/24
+
+sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
+
+./k8s-worker-join.sh "${ADVERTISE_SUBNET}"
+rm ./k8s-worker-join.sh
+```
+
+Below, let's dive into what `k8s-worker-join.sh` does.
+
+## Kubernetes Cluster Bootstrap
+
+```bash
+K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
+
+sudo rm --force --recursive /etc/kubernetes/
+
+rm --force --recursive "${HOME}/.kube"
+mkdir --parents "${HOME}/.kube"
+cp "${K8S_BOOTSTRAP_DIR}/kube-config.yaml" "${HOME}/.kube/config"
+```
+
+## CNI via `kubenet`
+
+See [Configure CNI Networking for Tailscale][3].
+
+## Join the Cluster with `kubeadm`
+
+We use the `kubeadm-worker-join-config.yaml` [template][4] to fully
+specify the join configuration as YAML (vs. via flags).
+
+```bash
+CONFIG_TEMPLATE_FILENAME=/var/data/tailsk8s-bootstrap/kubeadm-worker-join-config.yaml
+CA_CERT_HASH="sha256:$(cat "${K8S_BOOTSTRAP_DIR}/ca-cert-hash.txt")"
+JOIN_TOKEN="$(cat "${K8S_BOOTSTRAP_DIR}/join-token.txt")"
+CONTROL_PLANE_LOAD_BALANCER="$(cat "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt")"
+
+echo "Populating \`kubeadm\` configuration via template:"
+echo '================================================'
+cat "${CONFIG_TEMPLATE_FILENAME}"
+
+CA_CERT_HASH="${CA_CERT_HASH}" \
+  JOIN_TOKEN="${JOIN_TOKEN}" \
+  CONTROL_PLANE_LOAD_BALANCER="${CONTROL_PLANE_LOAD_BALANCER}" \
+  NODE_NAME="$(hostname)" \
+  HOST_IP="$(tailscale ip -4)" \
+  envsubst \
+  < "${CONFIG_TEMPLATE_FILENAME}" \
+  > "${HOME}/kubeadm-join-config.yaml"
+
+sudo kubeadm join \
+  --config "${HOME}/kubeadm-join-config.yaml"
+rm --force "${HOME}/kubeadm-join-config.yaml"
+```
+
+The template is identical to `kubeadm-control-plane-join-config.yaml` except
+for the presence of the `controlPlane` top-level key:
+
+```yaml
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: JoinConfiguration
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: ${CONTROL_PLANE_LOAD_BALANCER}:6443
+    token: ${JOIN_TOKEN}
+    caCertHashes:
+      - ${CA_CERT_HASH}
+nodeRegistration:
+  name: ${NODE_NAME}
+  kubeletExtraArgs:
+    node-ip: ${HOST_IP}
+```
+
+## Label the Newly Added Node with `tailsk8s` Label(s)
+
+```bash
+ADVERTISE_SUBNET="..."
+
+kubectl label node \
+  "$(hostname)" \
+  "tailsk8s.io/advertise-subnet=${ADVERTISE_SUBNET/\//__}"
+```
+
+## Verify
+
+From the jump host, verify the node was added:
 
 ```
-$ scp _bin/k8s-worker-join.sh dhermes@relaxed-bouman:~/
-k8s-worker-join.sh                                 100% 3532   179.6KB/s   00:00
-$ scp k8s-bootstrap-shared/* dhermes@relaxed-bouman:/var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt                                   100%   65     2.8KB/s   00:00
-certificate-key.txt                                100%   65     8.3KB/s   00:00
-control-plane-load-balancer.txt                    100%   15     1.3KB/s   00:00
-join-token.txt                                     100%   24     0.8KB/s   00:00
-kube-config.yaml                                   100% 5642   461.5KB/s   00:00
-tailscale-api-key                                  100%   40     5.3KB/s   00:00
-$ scp _templates/kubeadm* dhermes@relaxed-bouman:/var/data/tailsk8s-bootstrap/
-kubeadm-control-plane-join-config.yaml             100%  996    85.9KB/s   00:00
-kubeadm-init-config.yaml                           100% 1276   104.5KB/s   00:00
-kubeadm-worker-join-config.yaml                    100%  873   115.5KB/s   00:00
-$ scp _bin/tailscale-advertise-linux-amd64-* dhermes@relaxed-bouman:~/
-tailscale-advertise-linux-amd64-v1.20211203.1      100% 2427KB   2.2MB/s   00:01
-$
-$ ssh dhermes@relaxed-bouman
-dhermes@relaxed-bouman:~$ sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
-[sudo] password for dhermes:
-dhermes@relaxed-bouman:~$ ls -1 /var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt
-certificate-key.txt
-control-plane-load-balancer.txt
-join-token.txt
-kubeadm-control-plane-join-config.yaml
-kubeadm-init-config.yaml
-kubeadm-worker-join-config.yaml
-kube-config.yaml
-tailscale-api-key
-dhermes@relaxed-bouman:~$
-dhermes@relaxed-bouman:~$ ./k8s-worker-join.sh '10.100.3.0/24'
-+ '[' 1 -ne 1 ']'
-+ ADVERTISE_SUBNET=10.100.3.0/24
-++ hostname
-+ CURRENT_HOSTNAME=relaxed-bouman
-++ tailscale ip -4
-+ HOST_IP=100.122.162.98
-+ K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
-++ cat /var/data/tailsk8s-bootstrap/ca-cert-hash.txt
-...
-* Certificate signing request was sent to apiserver and a response was received.
-* The Kubelet was informed of the new secure connection details.
+$ kubectl --kubeconfig k8s-bootstrap-shared/kube-config.yaml get nodes
+NAME              STATUS   ROLES                  AGE     VERSION
+eager-jennings    Ready    control-plane,master   5m42s   v1.22.4
+nice-mcclintock   Ready    <none>                 1m5s    v1.22.4
+pedantic-yonath   Ready    control-plane,master   19m15s  v1.22.4
+```
 
-Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+Similarly, after adding the fourth bare metal node verify:
 
-+ rm --force /home/dhermes/kubeadm-join-config.yaml
-dhermes@relaxed-bouman:~$
-dhermes@relaxed-bouman:~$ kubectl get nodes --output wide
-NAME              STATUS   ROLES                  AGE     VERSION   INTERNAL-IP       EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
-eager-jennings    Ready    control-plane,master   15m     v1.22.4   100.109.83.23     <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-nice-mcclintock   Ready    <none>                 6m41s   v1.22.4   100.70.213.118    <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-pedantic-yonath   Ready    control-plane,master   32m     v1.22.4   100.110.217.104   <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-relaxed-bouman    Ready    <none>                 56s     v1.22.4   100.122.162.98    <none>        Ubuntu 20.04.3 LTS   5.11.0-41-generic   docker://20.10.11
-dhermes@relaxed-bouman:~$ rm k8s-worker-join.sh
-dhermes@relaxed-bouman:~$ ls -1 /var/data/tailsk8s-bootstrap/
-ca-cert-hash.txt
-certificate-key.txt
-control-plane-load-balancer.txt
-join-token.txt
-kubeadm-control-plane-join-config.yaml
-kubeadm-init-config.yaml
-kubeadm-worker-join-config.yaml
-kube-config.yaml
-tailscale-api-key
-dhermes@relaxed-bouman:~$ exit
-logout
-Connection to relaxed-bouman closed.
+```
+$ kubectl --kubeconfig k8s-bootstrap-shared/kube-config.yaml get nodes
+NAME              STATUS   ROLES                  AGE     VERSION
+eager-jennings    Ready    control-plane,master   7m55s   v1.22.4
+nice-mcclintock   Ready    <none>                 3m18s   v1.22.4
+pedantic-yonath   Ready    control-plane,master   21m28s  v1.22.4
+relaxed-bouman    Ready    <none>                 2m13s   v1.22.4
 ```
 
 ---
@@ -148,3 +152,6 @@ Connection to relaxed-bouman closed.
 Next: [Smoke Test][1]
 
 [1]: 12-smoke-test.md
+[2]: _bin/k8s-worker-join.sh
+[3]: 09-tailscale-cni.md
+[4]: _templates/kubeadm-worker-join-config.yaml
