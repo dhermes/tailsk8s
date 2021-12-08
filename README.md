@@ -21,6 +21,7 @@ both Kubernetes and Tailscale, you can go directly to
 - [Bringing up a New Machine][15]
 - [Installing Kubernetes Tools][16]
 - [Provision Load Balancer][17]
+- [Initialize Cluster][18]
 - [Configure CNI Networking for Tailscale][19]
 - [Smoke Test][23]
 - [Add an AWS EC2 VM to the Kubernetes Cluster][24]
@@ -90,6 +91,7 @@ Logos and Images Attributions:
 [15]: 05-new-machine.md
 [16]: 06-install-k8s.md
 [17]: 07-provision-load-balancer.md
+[18]: 08-initialize-cluster.md
 [19]: 09-tailscale-cni.md
 [23]: 13-smoke-test.md
 [24]: 14-add-vm-aws.md

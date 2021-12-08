@@ -14,17 +14,13 @@
 # limitations under the License.
 
 # Usage:
-#  ./k8s-load-balancer-proxy.sh CONTROL_PLANE [CONTROL_PLANE ...]
+#  ./k8s-load-balancer-proxy.sh TAILSCALE_HOST [TAILSCALE_HOST ...]
 # Starts or restarts HAProxy to act as a load balancer for the the Kubernetes
 # API servers (running on control plane nodes). In a cloud environment a
 # load balancer is a core primitive but in a bare metal cluster we approximate
 # it by running HAProxy on a "spare" machine. This may be run repeatedly as
 # control plane nodes join or leave the cluster, forcing the list of hosts
 # behind the load balancer to be updated.
-#
-# The `CONTROL_PLANE` inputs are expected to be of the form
-# `{TAILSCALE_HOST} {TAILSCALE_IP}`, for example
-# `pedantic-yonath 100.110.217.104`.
 
 set -e -x
 
@@ -32,13 +28,19 @@ set -e -x
 
 if [ "${#}" -eq 0 ]
 then
-  echo "Usage: ./k8s-load-balancer-proxy.sh CONTROL_PLANE [CONTROL_PLANE ...]" >&2
+  echo "Usage: ./k8s-load-balancer-proxy.sh TAILSCALE_HOST [TAILSCALE_HOST ...]" >&2
   exit 1
 fi
 
 ## Computed Variables
 
 HOST_IP="$(tailscale ip -4)"
+
+## Install `haproxy`
+
+sudo apt-get update
+sudo apt-get --yes upgrade
+sudo apt-get install --yes haproxy
 
 ## Enable non-local IPv4 bind for HAProxy
 
@@ -113,9 +115,15 @@ backend apiserver
      balance roundrobin
 EOF
 
-for CONTROL_PLANE in "${@}"
+for TAILSCALE_HOST in "${@}"
 do
-  echo "     server ${CONTROL_PLANE}:6443 check fall 3 rise 2" | sudo tee --append /etc/haproxy/haproxy.cfg
+  TAILSCALE_IP="$(tailscale status | grep "${TAILSCALE_HOST}" | cut -f 1 -d ' ')"
+  if test -z "${TAILSCALE_IP}"
+  then
+    echo "Could not determine Tailscale IP for host ${TAILSCALE_HOST}" >&2
+    exit 1
+  fi
+  echo "     server ${TAILSCALE_HOST} ${TAILSCALE_IP}:6443 check fall 3 rise 2" | sudo tee --append /etc/haproxy/haproxy.cfg
 done
 
 # Ensure HAProxy is enabled (will run on reboot) and restart to reload new

@@ -353,4 +353,8 @@ kubectl delete --filename ./httpbin.manifest.yaml
 rm ./httpbin.manifest.yaml
 ```
 
+## Update Load Balancer
+
+Placeholder
+
 [1]: https://aws.amazon.com/ec2/instance-types/t3/
