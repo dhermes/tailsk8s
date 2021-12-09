@@ -87,7 +87,7 @@ rm --force ./k8s-final-down.sh
 ### Load Balancer
 
 From the jump host make sure the teardown scripts are present and SSH onto
-the Kubernetes node to complete the task:
+the load balancer machine to complete the task:
 
 ```bash
 TAILSCALE_DEVICE_NAME=nice-mcclintock
