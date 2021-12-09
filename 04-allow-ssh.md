@@ -51,7 +51,6 @@ to receive the authorized keys:
 ```bash
 NETCAT_LISTEN_PORT=9107
 
-echo "Please send authorized keys to raw TCP listener on port ${NETCAT_LISTEN_PORT}"
 echo "The list of all known IP addresses for this host is:"
 hostname --all-ip-addresses
 
