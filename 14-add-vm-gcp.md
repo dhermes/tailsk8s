@@ -81,14 +81,7 @@ gcloud compute ssh ubuntu@"${TAILSCALE_DEVICE_NAME}"
 ```
 
 Later we'll ditch `gcloud compute ssh` and just use `ssh` directly over
-Tailscale, so we'll grab the public IP of the instance as well:
-
-```bash
-## H/T: https://cloud.google.com/compute/docs/instances/view-ip-address
-PUBLIC_IP=$(gcloud compute instances describe \
-  "${TAILSCALE_DEVICE_NAME}" \
-  --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
-```
+Tailscale.
 
 ## Join the Tailnet
 
@@ -127,6 +120,10 @@ Close the connection and ensure that the newly added SSH keys have taken
 effect:
 
 ```bash
+## H/T: https://cloud.google.com/compute/docs/instances/view-ip-address
+PUBLIC_IP=$(gcloud compute instances describe \
+  "${TAILSCALE_DEVICE_NAME}" \
+  --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
 ssh ubuntu@"${PUBLIC_IP}"
 ```
 
