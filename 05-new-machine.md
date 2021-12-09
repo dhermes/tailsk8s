@@ -146,6 +146,7 @@ TAILSCALE_DEVICE_NAME=pedantic-yonath
   --debug \
   --hostname "${TAILSCALE_DEVICE_NAME}" \
   --api-key file:./k8s-bootstrap-shared/tailscale-api-key
+# In WSL2, use `./_bin/tailscale-authorize-windows-amd64-v1.20211203.1.exe`
 ```
 
 ## Set Up Uncomplicated Firewall (`ufw`)
