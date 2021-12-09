@@ -363,8 +363,8 @@ rm --force ./httpbin.manifest.yaml
 
 Since we have a new control plane node, the load balancer needs to be updated
 to reference this node. We can do it by re-running the
-`k8s-load-balancer-proxy.sh` [script][3] with 3 arguments instead of the
-original 2. As in [Provision Load Balancer][4], copy the script from the jump
+`k8s-load-balancer-proxy.sh` [script][3] with three arguments instead of the
+original two. As in [Provision Load Balancer][4], copy the script from the jump
 host onto the load balancer host:
 
 ```bash
