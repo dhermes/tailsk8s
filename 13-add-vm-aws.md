@@ -140,6 +140,18 @@ aws ec2 modify-instance-attribute --instance-id "${INSTANCE_ID}" --no-source-des
 aws ec2 create-tags --resources "${INSTANCE_ID}" --tags "Key=Name,Value=${TAILSCALE_DEVICE_NAME}"
 ```
 
+> **NOTE**: There may be some issues using a `t3.micro` [instance][1] with
+> `kubeadm`. For example:
+>
+> ```
+> # [preflight] Some fatal errors occurred:
+> #         [ERROR Mem]: the system RAM (943 MB) is less than the minimum 1700 MB
+> ```
+>
+> This can be avoided by using a larger instance type (e.g. `t3.medium`) or
+> by using `--ignore-preflight-errors Mem` when invoking `kubeadm join` in
+> `k8s-control-plane-join.sh`.
+
 ## Validate Connection
 
 From the jump host, retrieve the public IP of the newly created instance and
@@ -278,18 +290,6 @@ rm --force ./k8s-install.sh
 ./k8s-control-plane-join.sh "${ADVERTISE_SUBNET}"
 rm --force ./k8s-control-plane-join.sh
 ```
-
-> **NOTE**: There may be some issues using a `t3.micro` [instance][1] with
-> `kubeadm`. For example:
->
-> ```
-> # [preflight] Some fatal errors occurred:
-> #         [ERROR Mem]: the system RAM (943 MB) is less than the minimum 1700 MB
-> ```
->
-> This can be avoided by using a larger instance type (e.g. `t3.medium`) or
-> by using `--ignore-preflight-errors Mem` when invoking `kubeadm join` in
-> `k8s-control-plane-join.sh`.
 
 ## Validate Cluster after Joining
 

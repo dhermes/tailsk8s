@@ -65,6 +65,12 @@ gcloud compute instances create "${TAILSCALE_DEVICE_NAME}" \
 gcloud compute instances list --filter="tags.items=tailsk8s"
 ```
 
+> **NOTE**: Here I've chosen to use to use a `e2-micro` [instance][1], but
+> this may be underpowered. Note that an `e2-standard-2` is the instance type
+> used in Kelsey's Kubernetes The Hard Way. We similarly don't use the
+> `--boot-disk-size 200GB` flag when invoking
+> `gcloud compute instances create`.
+
 ## Validate Connection
 
 From the jump host, use `gcloud compute ssh` to verify the firewall rule is
@@ -209,12 +215,6 @@ rm --force ./k8s-install.sh
 ./k8s-worker-join.sh "${ADVERTISE_SUBNET}"
 rm --force ./k8s-worker-join.sh
 ```
-
-> **NOTE**: Here I've chosen to use to use a `e2-micro` [instance][1], but
-> this may be underpowered. Note that an `e2-standard-2` is the instance type
-> used in Kelsey's Kubernetes The Hard Way. We similarly don't use the
-> `--boot-disk-size 200GB` flag when invoking
-> `gcloud compute instances create`.
 
 ## Validate Cluster after Joining
 
