@@ -6,9 +6,9 @@ number and identity of nodes in the control plane to be **dynamic**.
 See the [High Availability Considerations][2] document linked to from
 [Creating Highly Available clusters with `kubeadm`][3].
 
-Out of an abudance of caution this load balancer should **not** run on one
-of the Kubernetes nodes. However, my cluster doesn't currently have very many
-machines (just four) so I put the load balancer on one of the worker nodes.
+This load balancer **should not** run on one of the Kubernetes nodes. However,
+my cluster doesn't currently have very many machines (just four) so I put the
+load balancer on one of the worker nodes.
 
 From the jump host, copy over the `k8s-load-balancer-proxy.sh` [script][1] to
 the new machine:
