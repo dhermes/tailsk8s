@@ -40,7 +40,7 @@ kubectl get nodes
 ./k8s-node-down.sh
 rm --force ./k8s-node-down.sh
 
-# Configuration **before** teardown
+# Configuration **after** teardown
 ls -1 /var/data/tailsk8s-bootstrap/
 kubectl get nodes
 ```
