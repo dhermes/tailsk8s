@@ -148,6 +148,14 @@ pedantic-yonath   Ready    control-plane,master   21m28s  v1.22.4
 relaxed-bouman    Ready    <none>                 2m13s   v1.22.4
 ```
 
+## High Availability
+
+We're using a [stacked `etcd` topology][5] here, which means each control plane
+node is also an `etcd` node as well. Since I only have four machines, I am
+using two as control plane nodes and two as worker nodes. It's worth noting
+that two `etcd` nodes is in some sense **worse** than one `etcd` node, because
+they'll never be able to form [quorum][6] when they disagree.
+
 ---
 
 Next: [Smoke Test][1]
@@ -156,3 +164,5 @@ Next: [Smoke Test][1]
 [2]: _bin/k8s-worker-join.sh
 [3]: 09-tailscale-cni.md
 [4]: _templates/kubeadm-worker-join-config.yaml
+[5]: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/#stacked-etcd-topology
+[6]: https://etcd.io/docs/v3.3/faq/#why-an-odd-number-of-cluster-members
