@@ -170,7 +170,8 @@ the Tailnet in the Tailscale UI. (It's probably worth adding a
 `tailscale-remove` command to this project.)
 
 If **only** the AWS instance is being deleted but the cluster is remaining
-in place, it should be removed from the load balancer:
+in place, the load balancer should be updated to reflect the removed control
+plane node:
 
 ```bash
 TAILSCALE_HOST1=eager-jennings
