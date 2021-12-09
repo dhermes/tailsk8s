@@ -76,7 +76,7 @@ security group rule.
 ```bash
 SECURITY_GROUP_ID=$(aws ec2 create-security-group \
   --group-name tailsk8s \
-  --description "tailsk8s security group" \
+  --description 'tailsk8s security group' \
   --vpc-id "${VPC_ID}" \
   --output text --query 'GroupId')
 echo "SECURITY_GROUP_ID=${SECURITY_GROUP_ID}" >> .ec2-env
@@ -148,7 +148,7 @@ use the newly created private key `tailsk8s.id_rsa` to start an SSH session:
 ```bash
 PUBLIC_IP=$(aws ec2 describe-instances --filters \
   "Name=tag:Name,Values=${TAILSCALE_DEVICE_NAME}" \
-  "Name=instance-state-name,Values=running" \
+  'Name=instance-state-name,Values=running' \
   --output text --query 'Reservations[].Instances[].PublicIpAddress')
 echo "PUBLIC_IP=${PUBLIC_IP}" >> .env
 
