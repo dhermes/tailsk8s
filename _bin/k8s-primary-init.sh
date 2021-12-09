@@ -174,6 +174,7 @@ kubectl label node \
 ## Kubernetes Cluster Bootstrap (After)
 #### See: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-join/#token-based-discovery-with-ca-pinning
 
+rm --force "${K8S_BOOTSTRAP_DIR}/ca-cert-hash.txt"
 openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt \
   | openssl rsa -pubin -outform der 2>/dev/null \
   | openssl dgst -sha256 -hex \

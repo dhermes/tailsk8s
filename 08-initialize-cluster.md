@@ -215,6 +215,7 @@ kubectl label node \
 See [Token-based discovery with CA pinning][7].
 
 ```bash
+rm --force "${K8S_BOOTSTRAP_DIR}/ca-cert-hash.txt"
 openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt \
   | openssl rsa -pubin -outform der 2>/dev/null \
   | openssl dgst -sha256 -hex \
