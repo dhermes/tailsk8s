@@ -142,6 +142,7 @@ a good idea). If that is the case, it can be authorized from the jump host:
   --debug \
   --hostname "${TAILSCALE_DEVICE_NAME}" \
   --api-key file:./k8s-bootstrap-shared/tailscale-api-key
+# In WSL2, use `./_bin/tailscale-authorize-windows-amd64-v1.20211203.1.exe`
 ```
 
 After `new-machine.sh` has completed, the **only** traffic allowed into the
