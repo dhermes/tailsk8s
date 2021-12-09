@@ -16,6 +16,7 @@ these from the jump host):
 - `/var/data/tailsk8s-bootstrap/kubeadm-control-plane-join-config.yaml`
 - `/var/data/tailsk8s-bootstrap/kube-config.yaml`
 - `/var/data/tailsk8s-bootstrap/tailscale-api-key`
+- `/usr/local/bin/tailscale-advertise`
 
 To actually join the cluster, copy over the inputs from the jump host,
 and then run the script on the control plane node:

@@ -15,6 +15,7 @@ and the script assumes the presence of roughly the same set of files:
 - `/var/data/tailsk8s-bootstrap/kubeadm-worker-join-config.yaml`
 - `/var/data/tailsk8s-bootstrap/kube-config.yaml`
 - `/var/data/tailsk8s-bootstrap/tailscale-api-key`
+- `/usr/local/bin/tailscale-advertise`
 
 To actually join the cluster, copy over the inputs from the jump host,
 run the script on the worker node:
