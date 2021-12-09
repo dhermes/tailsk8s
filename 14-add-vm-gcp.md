@@ -142,11 +142,11 @@ is configured to require authorization when a new device joins (this is
 a good idea). If that is the case, it can be authorized from the jump host:
 
 ```bash
-./_bin/tailscale-authorize-linux-amd64-v1.20211203.1 \
+./_bin/tailscale-authorize-linux-amd64-v1.20211209.1 \
   --debug \
   --hostname "${TAILSCALE_DEVICE_NAME}" \
   --api-key file:./k8s-bootstrap-shared/tailscale-api-key
-# In WSL2, use `./_bin/tailscale-authorize-windows-amd64-v1.20211203.1.exe`
+# In WSL2, use `./_bin/tailscale-authorize-windows-amd64-v1.20211209.1.exe`
 ```
 
 After `new-machine.sh` has completed, the **only** traffic allowed into the
