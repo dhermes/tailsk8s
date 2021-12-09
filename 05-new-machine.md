@@ -12,6 +12,8 @@ scp \
   _bin/new-machine.sh \
   "${TAILSCALE_AUTHKEY_FILENAME}" \
   "${SSH_TARGET}":~/
+# Once a one-off key has been used, get rid of it
+rm --force "${TAILSCALE_AUTHKEY_FILENAME}"
 
 ssh "${SSH_TARGET}"
 ```
