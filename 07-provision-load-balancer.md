@@ -37,7 +37,6 @@ Below, let's dive into what `k8s-load-balancer-proxy.sh` does.
 
 ```bash
 sudo apt-get update
-sudo apt-get --yes upgrade
 sudo apt-get install --yes haproxy
 ```
 

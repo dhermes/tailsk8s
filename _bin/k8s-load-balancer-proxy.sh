@@ -39,7 +39,6 @@ HOST_IP="$(tailscale ip -4)"
 ## Install `haproxy`
 
 sudo apt-get update
-sudo apt-get --yes upgrade
 sudo apt-get install --yes haproxy
 
 ## Enable non-local IPv4 bind for HAProxy
