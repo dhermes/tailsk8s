@@ -8,10 +8,11 @@ machines and they are on the same local network as the jump host. We just want
 to do the **bare minimum** to get SSH access from the jump host and nothing
 more.
 
-If you have an external storage device, just copy `bootstrap-ssh-bare-metal.sh`
-[script][1] and an `.extra_authorized_keys` file onto the machine and run the
-script. If not, we'll use `netcat` to send the `.extra_authorized_keys` file
-over the network (be sure to validate after receiving).
+We'll use `netcat` to send the `.extra_authorized_keys` file over the network
+(be sure to validate after receiving). If you have an external storage device,
+this is not necessary, just copy the `bootstrap-ssh-bare-metal.sh` [script][1]
+and an `.extra_authorized_keys` file onto the machine and a modified version
+of the script that doesn't need to get extra authorized keys.
 
 ## Installation
 
