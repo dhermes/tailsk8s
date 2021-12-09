@@ -72,3 +72,8 @@ sudo rm --force --recursive /etc/kubernetes/
 sudo rm --force --recursive "${K8S_BOOTSTRAP_DIR}"
 sudo mkdir --parents "${K8S_BOOTSTRAP_DIR}"
 sudo chown "${OWNER_GROUP}" "${K8S_BOOTSTRAP_DIR}"
+
+## Clean Up Any Leftover Docker Data
+
+docker system prune --force
+docker volume prune --force

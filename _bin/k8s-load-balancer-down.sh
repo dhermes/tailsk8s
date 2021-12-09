@@ -20,5 +20,25 @@
 
 set -e -x
 
-echo "Not implemented" >&2
-exit 1
+## Validate and read inputs
+
+if [ "${#}" -ne 0 ]
+then
+  echo "Usage: ./k8s-final-down.sh" >&2
+  exit 1
+fi
+
+## Remove HAProxy `sysctl` modifications
+
+sudo rm --force /etc/sysctl.d/haproxy.conf
+sudo sysctl --system
+
+## Restore Backed Up HAProxy Config
+
+sudo rm --force /etc/haproxy/haproxy.cfg
+sudo mv /etc/haproxy/haproxy.cfg.backup /etc/haproxy/haproxy.cfg
+
+# Ensure HAProxy is disabled and stopped
+
+sudo systemctl disable haproxy --now
+sudo systemctl stop haproxy
