@@ -65,7 +65,7 @@ gcloud compute instances create "${TAILSCALE_DEVICE_NAME}" \
 gcloud compute instances list --filter="tags.items=tailsk8s"
 ```
 
-> **NOTE**: Here I've chosen to use to use a `e2-micro` [instance][1], but
+> **NOTE**: Here I've chosen to use to use an `e2-micro` [instance][1], but
 > this may be underpowered. Note that an `e2-standard-2` is the instance type
 > used in Kelsey's Kubernetes The Hard Way. We similarly don't use the
 > `--boot-disk-size 200GB` flag when invoking
