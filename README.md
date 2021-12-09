@@ -38,11 +38,11 @@ without example projects, blog posts and great documentation. Some that were
 particularly helpful:
 
 - [kelseyhightower/kubernetes-the-hard-way][3] from Kelsey Hightower
-- [Deploying Kubernetes on Bare Metal][4] by [Layachi Khodja][8]
+- [prabhatsharma/kubernetes-the-hard-way-aws][9] from Prabhat Sharma
 - [rmb938/tailscale-cni][5] from Ryan Belgrave
+- [Deploying Kubernetes on Bare Metal][4] by [Layachi Khodja][8]
 - [`kubeadm init/join` and ExternalIP vs InternalIP][6] from
   [Alasdair Lumsden][7]
-- [prabhatsharma/kubernetes-the-hard-way-aws][9] from Prabhat Sharma
 
 ## Development
 
