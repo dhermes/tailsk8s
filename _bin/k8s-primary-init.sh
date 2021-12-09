@@ -67,12 +67,15 @@ fi
 
 ## Kubernetes Cluster Bootstrap (Before)
 
+rm --force "${K8S_BOOTSTRAP_DIR}/join-token.txt"
 kubeadm token generate > "${K8S_BOOTSTRAP_DIR}/join-token.txt"
 chmod 400 "${K8S_BOOTSTRAP_DIR}/join-token.txt"
 
+rm --force "${K8S_BOOTSTRAP_DIR}/certificate-key.txt"
 kubeadm certs certificate-key > "${K8S_BOOTSTRAP_DIR}/certificate-key.txt"
 chmod 400 "${K8S_BOOTSTRAP_DIR}/certificate-key.txt"
 
+rm --force "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 echo "${CONTROL_PLANE_LOAD_BALANCER}" > "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 chmod 444 "${K8S_BOOTSTRAP_DIR}/control-plane-load-balancer.txt"
 
@@ -150,6 +153,9 @@ CERTIFICATE_KEY="${CERTIFICATE_KEY}" \
 
 ## Run `kubeadm init`
 
+sudo rm --force --recursive /etc/kubernetes/
+sudo rm --force --recursive /var/lib/etcd/
+sudo rm --force --recursive /var/lib/kubelet/
 sudo kubeadm init \
   --config "${HOME}/kubeadm-init-config.yaml" \
   --upload-certs \

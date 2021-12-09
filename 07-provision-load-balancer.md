@@ -111,6 +111,15 @@ sudo systemctl enable haproxy --now
 sudo systemctl restart haproxy
 ```
 
+## Verify
+
+```
+dhermes@nice-mcclintock:~$ netcat -v 100.70.213.118 6443
+Connection to 100.70.213.118 6443 port [tcp/*] succeeded!
+
+dhermes@nice-mcclintock:~$
+```
+
 ---
 
 Next: [Initialize Cluster][4]
