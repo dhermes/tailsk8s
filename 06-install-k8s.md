@@ -45,7 +45,7 @@ sudo systemctl restart docker
 
 See [Container runtimes][3] for more details.
 
-## Let `iptables`` See Bridged Traffic
+## Let `iptables` See Bridged Traffic
 
 ```bash
 if sudo test -f /etc/modules-load.d/k8s.conf; then

@@ -54,7 +54,7 @@ sudo systemctl enable docker
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 
-## Let `iptables`` see bridged traffic
+## Let `iptables` see bridged traffic
 
 if sudo test -f /etc/modules-load.d/k8s.conf; then
     echo "/etc/modules-load.d/k8s.conf exists, will be overwritten."
