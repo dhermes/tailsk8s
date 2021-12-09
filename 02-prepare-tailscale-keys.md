@@ -32,10 +32,10 @@ Generate an API key and store it in `k8s-bootstrap-shared/tailscale-api-key`:
 
 ## Prepare For New Devices
 
-As we bring up our cluster, we'll be added 4 bare metal machines and 2 cloud
-provider VMs. In order to automate the process of joining the Tailnet, we'll
+As we bring up our cluster, we'll be adding 4 bare metal machines and 2 cloud
+provider VMs to the Tailnet. In order to automate the process, we'll
 generate six [one-off keys][3]. (It's tempting to use a reusable key or even
-ephemeral key here, but having better security hygiene here is not a large
+an ephemeral key here, but having better security hygiene here is not a large
 cost with only 6 devices.) We'll store these keys locally, for example:
 
 - `k8s-bootstrap-shared/tailscale-one-off-key-KC`

@@ -3,7 +3,7 @@
 Our goal is to administer all machines from the jump host, but a brand new
 (bare metal) machine won't be accessible to the jump host.
 
-The assumption here is that the you have physical access to the new bare metal
+The assumption here is that we have physical access to the new bare metal
 machines and they are on the same local network as the jump host. We just want
 to do the **bare minimum** to get SSH access from the jump host and nothing
 more.
