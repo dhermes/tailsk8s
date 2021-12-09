@@ -3,11 +3,12 @@
 ## Bare Metal
 
 When a **single** node is leaving the Kubernetes cluster, the process looks
-exactly the same and is encoded in `k8s-node-down.sh`. When the **last**
-node leaves the cluster, i.e. the entire cluster is being torn down, there
-is a modified `k8s-final-down.sh`. In addition to Kubernetes nodes, we also
+exactly the same for workers and control plane nodes. This process is encoded
+in the `k8s-node-down.sh` [script][2]. When the **last** node leaves the
+cluster, i.e. the entire cluster is being torn down, there is a modified
+`k8s-final-down.sh` [script][3]. In addition to Kubernetes nodes, we also
 brought up a bare metal load balance, so there is a `k8s-load-balancer-down.sh`
-script to turn that down as well.
+[script][4] to turn that down as well.
 
 ### Most Nodes
 
@@ -222,3 +223,6 @@ the Tailnet in the Tailscale UI. (It's probably worth adding a
 `tailscale-remove` command to this project.)
 
 [1]: https://github.com/prabhatsharma/kubernetes-the-hard-way-aws/blob/c4872b83989562a35e9aba98ff92526a0f1498ca/docs/14-cleanup.md
+[2]: _bin/k8s-node-down.sh
+[3]: _bin/k8s-final-down.sh
+[4]: _bin/k8s-load-balancer-down.sh
