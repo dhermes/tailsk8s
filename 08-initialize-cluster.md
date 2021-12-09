@@ -58,7 +58,7 @@ scp \
 ```
 
 To actually carry out that `# ... run` step on the control plane node
-(above it was `pedantic-yonath`):
+(e.g. on `pedantic-yonath`):
 
 ```bash
 CLUSTER_NAME=stoic-pike
