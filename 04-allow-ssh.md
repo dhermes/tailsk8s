@@ -81,13 +81,7 @@ echo '================================='
 cat "${HOME}/.extra_authorized_keys"
 echo '================================='
 
-read -r -p ">> Accept extra authorized keys (y/n)? " ACCEPT_PROMPT
-if [ "${ACCEPT_PROMPT}" != "y" ] && [ "${ACCEPT_PROMPT}" != "Y" ]
-then
-  echo "Rejected extra authorized keys" >&2
-  rm --force "${HOME}/.extra_authorized_keys"
-  exit 1
-fi
+## Be sure to validate the above before adding the keys below
 
 touch "${HOME}/.ssh/authorized_keys"
 chmod 644 "${HOME}/.ssh/authorized_keys"
