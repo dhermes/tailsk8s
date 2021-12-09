@@ -47,8 +47,8 @@ httpbin       httpbin      ClusterIP   10.101.177.244   <none>        8000/TCP  
 kube-system   kube-dns     ClusterIP   10.101.0.10      <none>        53/UDP,53/TCP,9153/TCP   40m   k8s-app=kube-dns
 ```
 
-We can reach **pods** from the jump host because they of Tailscale subnet
-routers:
+We can reach **pods** from the jump host because the jump host is in the
+Tailnet and the pod IPs are handled by Tailscale subnet routers:
 
 ```
 $ curl http://10.100.2.3:80/headers
