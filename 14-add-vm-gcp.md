@@ -124,6 +124,7 @@ effect:
 PUBLIC_IP=$(gcloud compute instances describe \
   "${TAILSCALE_DEVICE_NAME}" \
   --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
+
 ssh ubuntu@"${PUBLIC_IP}"
 ```
 
