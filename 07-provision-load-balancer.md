@@ -58,7 +58,7 @@ sudo sysctl --system
 
 ## Configure HAProxy
 
-This uses approximately the same `haproxy.cfg` INI file from
+This uses approximately the same `haproxy.cfg` file from
 [High Availability Considerations][2]
 
 ```bash
