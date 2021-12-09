@@ -153,6 +153,14 @@ eager-jennings    Ready    control-plane,master   4m37s   v1.22.4
 pedantic-yonath   Ready    control-plane,master   18m10s  v1.22.4
 ```
 
+## High Availability
+
+We're using a [stacked `etcd` topology][5] here, which means each control plane
+node is also an `etcd` node as well. Since I only have four machines, I am
+using two as control plane nodes and two as worker nodes. It's worth noting
+that two `etcd` nodes is in some sense **worse** than one `etcd` node, because
+they'll never be able to form [quorum][6] when they disagree.
+
 ---
 
 Next: [Adding a Worker Node][1]
@@ -161,3 +169,5 @@ Next: [Adding a Worker Node][1]
 [2]: _bin/k8s-control-plane-join.sh
 [3]: _templates/kubeadm-control-plane-join-config.yaml
 [4]: 09-tailscale-cni.md
+[5]: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/#stacked-etcd-topology
+[6]: https://etcd.io/docs/v3.3/faq/#why-an-odd-number-of-cluster-members
