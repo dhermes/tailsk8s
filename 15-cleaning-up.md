@@ -169,8 +169,8 @@ After doing this, manually **remove** the `${TAILSCALE_DEVICE_NAME}` from
 the Tailnet in the Tailscale UI. (It's probably worth adding a
 `tailscale-remove` command to this project.)
 
-If **only** the AWS instance is being remove but the cluster is remaining
-in place, it should be **removed** from the load balancer:
+If **only** the AWS instance is being deleted but the cluster is remaining
+in place, it should be removed from the load balancer:
 
 ```bash
 TAILSCALE_HOST1=eager-jennings
