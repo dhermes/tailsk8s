@@ -4,6 +4,8 @@ We'll be coordinating everything from a **jump host**. The jump host is the
 primary computer used to administer all of the machines in the Kubernetes
 cluster. We'll lock down all of our Kubernetes nodes so that they are **only**
 reachable via the Tailnet, so the jump host also needs to be in the Tailnet.
+I'll be using Ubuntu 20.04.3 both for the jump host and all of the nodes.
+(Technically it's WSL Ubuntu, a VM inside of Windows.)
 
 ## Install
 
@@ -15,7 +17,7 @@ CLIs will be used:
 - `kubectl` [binary][2]
 - `gcloud` [CLI][3]
 - `aws` [CLI][4]
-- **Optional**: `aws-vault` [CLI]
+- **Optional**: `aws-vault` [CLI][5]
 
 ## Configure
 
