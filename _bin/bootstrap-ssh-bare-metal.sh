@@ -33,15 +33,12 @@ NETCAT_LISTEN_PORT="${1}"
 ## Install All APT Packages Needed
 #### - `netcat` for using a raw TCP listener
 #### - SSH client and server (should already be present from previous steps)
-#### - `ubuntu-server` (if need be); some of the bare metal servers may be
-####   running Ubuntu Desktop
 
 sudo apt-get update
 sudo apt-get install --yes \
   netcat \
   openssh-client \
-  openssh-server \
-  ubuntu-server
+  openssh-server
 
 ## Disable SSH Password Authentication and Restart SSH Server
 

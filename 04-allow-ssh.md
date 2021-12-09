@@ -26,9 +26,6 @@ sudo apt-get install --yes \
   openssh-server
 ```
 
-It may also be worth installing `ubuntu-server` if the new bare metal machine
-was installed with Ubuntu Desktop.
-
 ## Securely Configure SSH
 
 Disable password authentication by removing all SSH config lines containing
@@ -110,9 +107,33 @@ ssh "${SSH_TARGET}"
 Once this connection has been confirmed, you can start to `scp` files over
 to the new machine as needed and then use SSH sessions to run the scripts.
 
+## Extra
+
+For machines in my cluster, I have intentionally installed [Ubuntu Desktop][3]
+so I can use them as a Desktop when it's convenient. However, I primarily
+want them as servers:
+
+```bash
+sudo apt-get install --yes ubuntu-server
+```
+
+Additionally, I want my servers to stay running in clamshell mode i.e. when
+the laptop lid is closed (I am aware this is problematic for laptop cooling).
+To do this, I [configure][4] `/etc/systemd/logind.conf` to ignore lid
+switch when plugged into power:
+
+```bash
+dhermes@pedantic-yonath:~$ cat /etc/systemd/logind.conf | grep -v '^#' | grep -v '^$'
+[Login]
+HandleLidSwitchExternalPower=ignore
+LidSwitchIgnoreInhibited=no
+```
+
 ---
 
 Next: [Bringing up a New Machine][2]
 
 [1]: _bin/bootstrap-ssh-bare-metal.sh
 [2]: 05-new-machine.md
+[3]: https://ubuntu.com/download/desktop/thank-you?version=20.04.3&architecture=amd64
+[4]: https://askubuntu.com/a/594417/439339
