@@ -37,7 +37,7 @@ AWS_REGION=us-east-2
 AWS_PROFILE_NAME=dhermes
 
 aws configure set default.region "${AWS_REGION}"
-## Below is optional
+# Below is optional
 aws-vault add "${AWS_PROFILE_NAME}"
 ```
 

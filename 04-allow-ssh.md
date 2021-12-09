@@ -81,7 +81,7 @@ echo '================================='
 cat "${HOME}/.extra_authorized_keys"
 echo '================================='
 
-## Be sure to validate the above before adding the keys below
+# Be sure to validate the above before adding the keys below
 
 touch "${HOME}/.ssh/authorized_keys"
 chmod 644 "${HOME}/.ssh/authorized_keys"
