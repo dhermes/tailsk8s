@@ -7,7 +7,7 @@ exactly the same for workers and control plane nodes. This process is encoded
 in the `k8s-node-down.sh` [script][2]. When the **last** node leaves the
 cluster, i.e. the entire cluster is being torn down, there is a modified
 `k8s-final-down.sh` [script][3]. In addition to Kubernetes nodes, we also
-brought up a bare metal load balance, so there is a `k8s-load-balancer-down.sh`
+brought up a bare metal load balancer, so there is a `k8s-load-balancer-down.sh`
 [script][4] to turn that down as well.
 
 ### Most Nodes
