@@ -152,9 +152,6 @@ aws ec2 delete-key-pair --key-name tailsk8s
 rm --force ./tailsk8s.id_rsa ./tailsk8s.id_rsa.pub
 
 aws ec2 delete-security-group --group-id "${SECURITY_GROUP_ID}"
-ROUTE_TABLE_ASSOCIATION_ID="$(aws ec2 describe-route-tables \
-  --route-table-ids "${ROUTE_TABLE_ID}" \
-  --output text --query 'RouteTables[].Associations[].RouteTableAssociationId')"
 aws ec2 disassociate-route-table --association-id "${ROUTE_TABLE_ASSOCIATION_ID}"
 aws ec2 delete-route-table --route-table-id "${ROUTE_TABLE_ID}"
 

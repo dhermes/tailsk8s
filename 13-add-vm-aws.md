@@ -51,6 +51,10 @@ ROUTE_TABLE_ID=$(aws ec2 create-route-table \
   --vpc-id "${VPC_ID}" \
   --output text --query 'RouteTable.RouteTableId')
 echo "ROUTE_TABLE_ID=${ROUTE_TABLE_ID}" >> .ec2-env
+ROUTE_TABLE_ASSOCIATION_ID="$(aws ec2 describe-route-tables \
+  --route-table-ids "${ROUTE_TABLE_ID}" \
+  --output text --query 'RouteTables[].Associations[].RouteTableAssociationId')"
+echo "ROUTE_TABLE_ASSOCIATION_ID=${ROUTE_TABLE_ASSOCIATION_ID}" >> .ec2-env
 
 aws ec2 create-tags --resources "${ROUTE_TABLE_ID}" --tags 'Key=Name,Value=tailsk8s'
 aws ec2 associate-route-table --route-table-id "${ROUTE_TABLE_ID}" --subnet-id "${SUBNET_ID}"
