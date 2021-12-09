@@ -66,8 +66,8 @@ We need to be able to reach the new EC2 instance over the public internet for
 a brief period. However, once the instance has joined the Tailnet, it can be
 completely unreachable from the public internet but Tailscale will still
 punch our packets through! This is one of the incredible security benefits of
-Tailscale, we can make the instance unreachable using AWS APIs and also use
-`ufw` on the instance the only traffic allowed is via Tailscale.
+Tailscale, we can make the instance unreachable using AWS APIs and use
+`ufw` on the instance so that the only traffic allowed is via Tailscale.
 
 For the "first contact", we just need to add the public IP of our jump host
 to a security group. Once the EC2 has joined the Tailnet, we can remove this
