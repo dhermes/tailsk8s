@@ -59,7 +59,7 @@ sudo sysctl --system
 ## Configure HAProxy
 
 This uses approximately the same `haproxy.cfg` file from
-[High Availability Considerations][2]
+[High Availability Considerations][2]:
 
 ```bash
 # Backup
