@@ -132,8 +132,6 @@ shortly.
   <img src="./_images/interesting-jang.jpg?raw=true" />
 </p>
 
-`t3.micro`
-
 ### `agitated-feistel`
 
 When "someone else's computer" is [GCP GCE][10] we use a `e2-micro`
@@ -142,8 +140,6 @@ When "someone else's computer" is [GCP GCE][10] we use a `e2-micro`
 <p align="center">
   <img src="./_images/agitated-feistel.png?raw=true" />
 </p>
-
-`e2-micro`
 
 ## Load Balancer
 
