@@ -112,7 +112,7 @@ curl --location \
   | sudo tar --directory "${K8S_BIN_DIR}" --extract --gzip
 ```
 
-## Configure systemd to run `kubelet` unit and support `kubeadm`
+## Configure `systemd` to Run `kubelet` Unit and Support `kubeadm`
 
 ```bash
 K8S_RELEASE_VERSION=v0.4.0
