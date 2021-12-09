@@ -128,7 +128,7 @@ sudo tailscale up --authkey "file:${TAILSCALE_AUTHKEY_FILENAME}"
 rm --force "${TAILSCALE_AUTHKEY_FILENAME}"
 ```
 
-if device authorization is enabled in the Tailnet, then the command will block
+If device authorization is enabled in the Tailnet, then the command will block
 until the machine is authorized with:
 
 ```
