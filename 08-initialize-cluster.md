@@ -4,7 +4,7 @@ Now all of the preliminaries are out of the way, it's time to bring up the
 cluster! Adding our **first** control plane node is different than adding
 any of the other nodes because we are configuring the cluster itself
 (just once). The `k8s-primary-init.sh` [script][2] handles this task and
-consume 5 input arguments:
+consumes 5 input arguments:
 
 - `CLUSTER_NAME`: The human readable name of the cluster.
 - `POD_SUBNET`: The subnet used to allocate (virtual) IPs to pods in
