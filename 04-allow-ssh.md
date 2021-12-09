@@ -129,6 +129,8 @@ HandleLidSwitchExternalPower=ignore
 LidSwitchIgnoreInhibited=no
 ```
 
+If you make this change, you'll need to reboot for it to take effect.
+
 ---
 
 Next: [Bringing up a New Machine][2]
