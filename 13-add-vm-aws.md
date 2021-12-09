@@ -64,7 +64,7 @@ aws ec2 create-route \
 
 We need to be able to reach the new EC2 instance over the public internet for
 a brief period. However, once the instance has joined the Tailnet, it can be
-completely unreachable from the public internet but Tailscale will still get
+completely unreachable from the public internet but Tailscale will still
 punch our packets through! This is one of the incredible security benefits of
 Tailscale, we can make the instance unreachable using AWS APIs and also use
 `ufw` on the instance the only traffic allowed is via Tailscale.
