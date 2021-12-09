@@ -109,7 +109,7 @@ advertised subnets would look like:
 tailscale up --accept-routes --advertise-routes '10.100.0.0/24'
 ```
 
-However newly advertised routes must be accepted by a Tailnet admin:
+However, newly advertised routes must be accepted by a Tailnet admin:
 
 <p align="center">
   <img src="./_images/tailscale-subnet-route-disabled.png?raw=true" />
