@@ -6,7 +6,7 @@ follows roughly the same process (but has less work to do). The
 
 - `ADVERTISE_SUBNET`: The subnet used for pods on this node.
 
-However this time the script assumes there are many files present (we'll copy
+However, this time the script assumes there are many files present (we'll copy
 these from the jump host):
 
 - `/var/data/tailsk8s-bootstrap/ca-cert-hash.txt`
