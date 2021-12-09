@@ -360,7 +360,30 @@ rm ./httpbin.manifest.yaml
 
 ## Update Load Balancer
 
-Placeholder
+Since we have a new control plane node, the load balancer needs to be updated
+to reference this node. We can do it by re-running the
+`k8s-load-balancer-proxy.sh` [script][3] with 3 arguments instead of the
+original 2. As in [Provision Load Balancer][4], copy the script from the jump
+host onto the load balancer host:
+
+```bash
+SSH_TARGET=dhermes@nice-mcclintock
+
+scp _bin/k8s-load-balancer-proxy.sh "${SSH_TARGET}":~/
+
+ssh "${SSH_TARGET}"
+```
+
+then on the load balancer host:
+
+```bash
+TAILSCALE_HOST1=eager-jennings
+TAILSCALE_HOST2=pedantic-yonath
+TAILSCALE_HOST3=interesting-jang
+
+./k8s-load-balancer-proxy.sh "${TAILSCALE_HOST1}" "${TAILSCALE_HOST2}" "${TAILSCALE_HOST3}"
+rm ./k8s-load-balancer-proxy.sh
+```
 
 ---
 
@@ -368,3 +391,5 @@ Next: [Add a GCP GCE Instance to the Kubernetes Cluster][2]
 
 [1]: https://aws.amazon.com/ec2/instance-types/t3/
 [2]: 14-add-vm-gcp.md
+[3]: _bin/k8s-load-balancer-proxy.sh
+[4]: 07-provision-load-balancer.md
