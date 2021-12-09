@@ -77,7 +77,7 @@ sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
   "${ADVERTISE_SUBNET}" \
   "${CONTROL_PLANE_LOAD_BALANCER}"
 
-rm ./k8s-primary-init.sh
+rm --force ./k8s-primary-init.sh
 ```
 
 Note that we take care to avoid colliding with the `100.x.y.z` CGNAT

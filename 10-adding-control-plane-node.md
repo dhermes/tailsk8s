@@ -48,7 +48,7 @@ ADVERTISE_SUBNET=10.100.1.0/24
 sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
 
 ./k8s-control-plane-join.sh "${ADVERTISE_SUBNET}"
-rm ./k8s-control-plane-join.sh
+rm --force ./k8s-control-plane-join.sh
 ```
 
 Having to **manually** manage the `${ADVERTISE_SUBNET}` ranges (and making

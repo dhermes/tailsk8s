@@ -20,7 +20,7 @@ Then on the new machine:
 
 ```bash
 ./k8s-install.sh
-rm ./k8s-install.sh
+rm --force ./k8s-install.sh
 ```
 
 Below, let's dive into what `k8s-install.sh` does.

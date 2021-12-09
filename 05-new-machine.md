@@ -24,7 +24,7 @@ Then on the new machine:
 TAILSCALE_AUTHKEY_FILENAME=~/tailscale-one-off-key-KC
 
 ./new-machine.sh "${TAILSCALE_AUTHKEY_FILENAME}"
-rm ./new-machine.sh
+rm --force ./new-machine.sh
 ```
 
 Below, let's dive into what `new-machine.sh` does.

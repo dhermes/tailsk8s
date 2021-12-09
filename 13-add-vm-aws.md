@@ -185,7 +185,7 @@ TAILSCALE_DEVICE_NAME=interesting-jang
 EXTRA_AUTHORIZED_KEYS_FILENAME=~/.extra_authorized_keys
 
 ./bootstrap-ssh-cloud-provider.sh "${TAILSCALE_DEVICE_NAME}" "${EXTRA_AUTHORIZED_KEYS_FILENAME}"
-rm bootstrap-ssh-cloud-provider.sh
+rm --force ./bootstrap-ssh-cloud-provider.sh
 ```
 
 Close the connection and ensure that the newly added SSH keys have taken
@@ -201,7 +201,7 @@ Now, back on the EC2 VM:
 TAILSCALE_AUTHKEY_FILENAME=~/tailscale-one-off-key-AA
 
 ./new-machine.sh "${TAILSCALE_AUTHKEY_FILENAME}"
-rm ./new-machine.sh
+rm --force ./new-machine.sh
 ```
 
 This script will **block** when joining the Tailnet if your Tailnet
@@ -272,10 +272,10 @@ ADVERTISE_SUBNET='10.100.4.0/24'
 sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
 
 ./k8s-install.sh
-rm ./k8s-install.sh
+rm --force ./k8s-install.sh
 
 ./k8s-control-plane-join.sh "${ADVERTISE_SUBNET}"
-rm ./k8s-control-plane-join.sh
+rm --force ./k8s-control-plane-join.sh
 ```
 
 > **NOTE**: There may be some issues using a `t3.micro` [instance][1] with
@@ -355,7 +355,7 @@ Since `httpbin` was only used for validation, tear it down:
 
 ```bash
 kubectl delete --filename ./httpbin.manifest.yaml
-rm ./httpbin.manifest.yaml
+rm --force ./httpbin.manifest.yaml
 ```
 
 ## Update Load Balancer
@@ -382,7 +382,7 @@ TAILSCALE_HOST2=pedantic-yonath
 TAILSCALE_HOST3=interesting-jang
 
 ./k8s-load-balancer-proxy.sh "${TAILSCALE_HOST1}" "${TAILSCALE_HOST2}" "${TAILSCALE_HOST3}"
-rm ./k8s-load-balancer-proxy.sh
+rm --force ./k8s-load-balancer-proxy.sh
 ```
 
 ---

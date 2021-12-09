@@ -28,7 +28,7 @@ TAILSCALE_HOST1=eager-jennings
 TAILSCALE_HOST2=pedantic-yonath
 
 ./k8s-load-balancer-proxy.sh "${TAILSCALE_HOST1}" "${TAILSCALE_HOST2}"
-rm ./k8s-load-balancer-proxy.sh
+rm --force ./k8s-load-balancer-proxy.sh
 ```
 
 Below, let's dive into what `k8s-load-balancer-proxy.sh` does.

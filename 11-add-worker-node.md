@@ -46,7 +46,7 @@ ADVERTISE_SUBNET=10.100.2.0/24
 sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
 
 ./k8s-worker-join.sh "${ADVERTISE_SUBNET}"
-rm ./k8s-worker-join.sh
+rm --force ./k8s-worker-join.sh
 ```
 
 Below, let's dive into what `k8s-worker-join.sh` does.

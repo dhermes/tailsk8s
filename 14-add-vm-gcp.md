@@ -114,7 +114,7 @@ TAILSCALE_DEVICE_NAME=agitated-feistel
 EXTRA_AUTHORIZED_KEYS_FILENAME=~/.extra_authorized_keys
 
 ./bootstrap-ssh-cloud-provider.sh "${TAILSCALE_DEVICE_NAME}" "${EXTRA_AUTHORIZED_KEYS_FILENAME}"
-rm bootstrap-ssh-cloud-provider.sh
+rm --force ./bootstrap-ssh-cloud-provider.sh
 ```
 
 Close the connection and ensure that the newly added SSH keys have taken
@@ -130,7 +130,7 @@ Now, back on the GCE instance:
 TAILSCALE_AUTHKEY_FILENAME=~/tailscale-one-off-key-PT
 
 ./new-machine.sh "${TAILSCALE_AUTHKEY_FILENAME}"
-rm ./new-machine.sh
+rm --force ./new-machine.sh
 ```
 
 This script will **block** when joining the Tailnet if your Tailnet
@@ -203,10 +203,10 @@ ADVERTISE_SUBNET='10.100.5.0/24'
 sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
 
 ./k8s-install.sh
-rm ./k8s-install.sh
+rm --force ./k8s-install.sh
 
 ./k8s-worker-join.sh "${ADVERTISE_SUBNET}"
-rm ./k8s-worker-join.sh
+rm --force ./k8s-worker-join.sh
 ```
 
 > **NOTE**: Here I've chosen to use to use a `e2-micro` [instance][1], but
@@ -286,7 +286,7 @@ Since `httpbin` was only used for validation, tear it down:
 
 ```bash
 kubectl delete --filename ./httpbin.manifest.yaml
-rm ./httpbin.manifest.yaml
+rm --force ./httpbin.manifest.yaml
 ```
 
 ---
