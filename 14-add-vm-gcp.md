@@ -67,7 +67,7 @@ gcloud compute instances list --filter="tags.items=tailsk8s"
 
 > **NOTE**: Here I've chosen to use to use an `e2-micro` [instance][1], but
 > this may be underpowered. Note that an `e2-standard-2` is the instance type
-> used in Kelsey's Kubernetes The Hard Way. We similarly don't use the
+> [used][3] in Kelsey's Kubernetes The Hard Way. We similarly don't use the
 > `--boot-disk-size 200GB` flag when invoking
 > `gcloud compute instances create`.
 
@@ -296,3 +296,4 @@ Next: [Cleaning Up][2]
 
 [1]: https://cloud.google.com/compute/docs/general-purpose-machines#e2_machine_types
 [2]: 15-cleaning-up.md
+[3]: https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/79a3f79b27bd28f82f071bb877a266c2e62ee506/docs/03-compute-resources.md#kubernetes-controllers
