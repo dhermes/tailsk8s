@@ -42,12 +42,14 @@ K8S_BIN_DIR=/usr/local/bin
 #### H/T: https://kubernetes.io/docs/setup/production-environment/container-runtimes/
 cat <<EOF | sudo tee /etc/docker/daemon.json
 {
-  "exec-opts": ["native.cgroupdriver=systemd"],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m"
-  },
-  "storage-driver": "overlay2"
+    "exec-opts": [
+        "native.cgroupdriver=systemd"
+    ],
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "100m"
+    },
+    "storage-driver": "overlay2"
 }
 EOF
 sudo systemctl enable docker
@@ -57,12 +59,12 @@ sudo systemctl restart docker
 ## Let `iptables` see bridged traffic
 
 if sudo test -f /etc/modules-load.d/k8s.conf; then
-    echo "/etc/modules-load.d/k8s.conf exists, will be overwritten."
-    sudo rm --force /etc/modules-load.d/k8s.conf
+  echo "/etc/modules-load.d/k8s.conf exists, will be overwritten."
+  sudo rm --force /etc/modules-load.d/k8s.conf
 fi
 if sudo test -f /etc/sysctl.d/k8s.conf; then
-    echo "/etc/sysctl.d/k8s.conf exists, will be overwritten."
-    sudo rm --force /etc/sysctl.d/k8s.conf
+  echo "/etc/sysctl.d/k8s.conf exists, will be overwritten."
+  sudo rm --force /etc/sysctl.d/k8s.conf
 fi
 
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
@@ -115,7 +117,6 @@ curl --silent --show-error --location \
 
 sudo swapoff --all
 sudo sed -i '/ swap / s/^/#/' /etc/fstab
-free --human  ## Sanity Check
 
 ## Pre-fetch all images used by `kubeadm`
 

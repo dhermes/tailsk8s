@@ -40,8 +40,8 @@ sudo hostnamectl set-hostname "${DESIRED_HOSTNAME}"
 
 if [ ! -f "${EXTRA_AUTHORIZED_KEYS_FILENAME}" ]
 then
-    echo "No file located at ${EXTRA_AUTHORIZED_KEYS_FILENAME}" >&2
-    exit 1
+  echo "No file located at ${EXTRA_AUTHORIZED_KEYS_FILENAME}" >&2
+  exit 1
 fi
 
 ## Add Extra Authorized Key(s)

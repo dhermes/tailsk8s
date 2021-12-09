@@ -41,8 +41,8 @@ K8S_BOOTSTRAP_DIR=/var/data/tailsk8s-bootstrap
 
 if [ ! -f "${TAILSCALE_AUTHKEY_FILENAME}" ]
 then
-    echo "No file located at ${TAILSCALE_AUTHKEY_FILENAME}" >&2
-    exit 1
+  echo "No file located at ${TAILSCALE_AUTHKEY_FILENAME}" >&2
+  exit 1
 fi
 
 ## Ensure installation of **minimal** set of dependencies needed to add
@@ -113,8 +113,8 @@ sudo dpkg-reconfigure --frontend noninteractive tzdata
 
 if [ "$(grep '^PasswordAuthentication' /etc/ssh/sshd_config)" != "PasswordAuthentication no" ]
 then
-    echo "SSH Password Authentication is not disabled" >&2
-    exit 1
+  echo "SSH Password Authentication is not disabled" >&2
+  exit 1
 fi
 
 ## Ensure the current user can use the Docker socket without `sudo`.
@@ -133,8 +133,8 @@ sudo chown "${OWNER_GROUP}" "${K8S_BOOTSTRAP_DIR}"
 #### https://tailscale.com/kb/1104/enable-ip-forwarding/
 
 if sudo test -f /etc/sysctl.d/tailscale.conf; then
-    echo "/etc/sysctl.d/tailscale.conf exists, will be overwritten."
-    sudo rm --force /etc/sysctl.d/tailscale.conf
+  echo "/etc/sysctl.d/tailscale.conf exists, will be overwritten."
+  sudo rm --force /etc/sysctl.d/tailscale.conf
 fi
 
 cat <<EOF | sudo tee /etc/sysctl.d/tailscale.conf

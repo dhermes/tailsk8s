@@ -169,15 +169,15 @@ aws ec2 delete-vpc --vpc-id "${VPC_ID}"
 
 After doing this, manually **remove** the `${TAILSCALE_DEVICE_NAME}` from
 the Tailnet in the Tailscale UI. (It's probably worth adding a
-`tailscale-advertise` command to this project.)
+`tailscale-remove` command to this project.)
 
-## GCP GCE VM
+## GCP GCE Instance
 
-Since the VM in this demo is intended to be ephemeral, we can just destroy it
-from the jump host. However, before doing it, we need to gracefully leave the
-cluster and withdraw the pod CIDR routes from the Tailnet. From the jump host
-make sure the teardown scripts are present and SSH onto the GCE VM to complete
-the task:
+Since the instance in this demo is intended to be ephemeral, we can just
+destroy it from the jump host. However, before doing it, we need to gracefully
+leave the cluster and withdraw the pod CIDR routes from the Tailnet. From the
+jump host make sure the teardown scripts are present and SSH onto the GCE VM to
+complete the task:
 
 ```bash
 TAILSCALE_DEVICE_NAME=agitated-feistel
@@ -219,6 +219,6 @@ gcloud --quiet compute networks delete tailsk8s
 
 After doing this, manually **remove** the `${TAILSCALE_DEVICE_NAME}` from
 the Tailnet in the Tailscale UI. (It's probably worth adding a
-`tailscale-advertise` command to this project.)
+`tailscale-remove` command to this project.)
 
 [1]: https://github.com/prabhatsharma/kubernetes-the-hard-way-aws/blob/c4872b83989562a35e9aba98ff92526a0f1498ca/docs/14-cleanup.md

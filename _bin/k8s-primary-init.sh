@@ -53,16 +53,16 @@ CONFIG_TEMPLATE_FILENAME="${K8S_BOOTSTRAP_DIR}/kubeadm-init-config.yaml"
 
 if [ ! -f "${CONFIG_TEMPLATE_FILENAME}" ]
 then
-    echo "No file located at ${CONFIG_TEMPLATE_FILENAME}" >&2
-    exit 1
+  echo "No file located at ${CONFIG_TEMPLATE_FILENAME}" >&2
+  exit 1
 fi
 
 ## Ensure Tailscale API Key file exists
 
 if [ ! -f "${TAILSCALE_API_KEY_FILENAME}" ]
 then
-    echo "No file located at ${TAILSCALE_API_KEY_FILENAME}" >&2
-    exit 1
+  echo "No file located at ${TAILSCALE_API_KEY_FILENAME}" >&2
+  exit 1
 fi
 
 ## Kubernetes Cluster Bootstrap (Before)

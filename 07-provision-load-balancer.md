@@ -45,8 +45,8 @@ sudo apt-get install --yes haproxy
 
 ```bash
 if sudo test -f /etc/sysctl.d/haproxy.conf; then
-    echo "/etc/sysctl.d/haproxy.conf exists, will be overwritten."
-    sudo rm --force /etc/sysctl.d/haproxy.conf
+  echo "/etc/sysctl.d/haproxy.conf exists, will be overwritten."
+  sudo rm --force /etc/sysctl.d/haproxy.conf
 fi
 
 cat <<EOF | sudo tee /etc/sysctl.d/haproxy.conf

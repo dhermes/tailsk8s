@@ -107,8 +107,8 @@ See [Enable IP forwarding on Linux][5] FAQ from Tailscale:
 
 ```bash
 if sudo test -f /etc/sysctl.d/tailscale.conf; then
-    echo "/etc/sysctl.d/tailscale.conf exists, will be overwritten."
-    sudo rm --force /etc/sysctl.d/tailscale.conf
+  echo "/etc/sysctl.d/tailscale.conf exists, will be overwritten."
+  sudo rm --force /etc/sysctl.d/tailscale.conf
 fi
 
 cat <<EOF | sudo tee /etc/sysctl.d/tailscale.conf

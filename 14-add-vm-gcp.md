@@ -198,7 +198,7 @@ range in the pod subnet that it is responsible for. On the GCE instance, set
 up the scripts and run them:
 
 ```bash
-ADVERTISE_SUBNET='10.100.5.0/24'
+ADVERTISE_SUBNET=10.100.5.0/24
 
 sudo mv tailscale-advertise-linux-amd64-* /usr/local/bin/tailscale-advertise
 

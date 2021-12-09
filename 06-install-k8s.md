@@ -30,12 +30,14 @@ Below, let's dive into what `k8s-install.sh` does.
 ```bash
 cat <<EOF | sudo tee /etc/docker/daemon.json
 {
-  "exec-opts": ["native.cgroupdriver=systemd"],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m"
-  },
-  "storage-driver": "overlay2"
+    "exec-opts": [
+        "native.cgroupdriver=systemd"
+    ],
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "100m"
+    },
+    "storage-driver": "overlay2"
 }
 EOF
 sudo systemctl enable docker
@@ -49,12 +51,12 @@ See [Container runtimes][3] for more details.
 
 ```bash
 if sudo test -f /etc/modules-load.d/k8s.conf; then
-    echo "/etc/modules-load.d/k8s.conf exists, will be overwritten."
-    sudo rm --force /etc/modules-load.d/k8s.conf
+  echo "/etc/modules-load.d/k8s.conf exists, will be overwritten."
+  sudo rm --force /etc/modules-load.d/k8s.conf
 fi
 if sudo test -f /etc/sysctl.d/k8s.conf; then
-    echo "/etc/sysctl.d/k8s.conf exists, will be overwritten."
-    sudo rm --force /etc/sysctl.d/k8s.conf
+  echo "/etc/sysctl.d/k8s.conf exists, will be overwritten."
+  sudo rm --force /etc/sysctl.d/k8s.conf
 fi
 
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
