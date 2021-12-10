@@ -43,21 +43,22 @@ In order to allow external traffic into the VPC, we need an internet gateway:
 ```bash
 INTERNET_GATEWAY_ID=$(aws ec2 create-internet-gateway \
   --output text --query 'InternetGateway.InternetGatewayId')
-aws ec2 create-tags --resources "${INTERNET_GATEWAY_ID}" --tags 'Key=Name,Value=tailsk8s'
 echo "INTERNET_GATEWAY_ID=${INTERNET_GATEWAY_ID}" >> .ec2-env
+aws ec2 create-tags --resources "${INTERNET_GATEWAY_ID}" --tags 'Key=Name,Value=tailsk8s'
 aws ec2 attach-internet-gateway --internet-gateway-id "${INTERNET_GATEWAY_ID}" --vpc-id "${VPC_ID}"
 
 ROUTE_TABLE_ID=$(aws ec2 create-route-table \
   --vpc-id "${VPC_ID}" \
   --output text --query 'RouteTable.RouteTableId')
 echo "ROUTE_TABLE_ID=${ROUTE_TABLE_ID}" >> .ec2-env
+aws ec2 create-tags --resources "${ROUTE_TABLE_ID}" --tags 'Key=Name,Value=tailsk8s'
+
+aws ec2 associate-route-table --route-table-id "${ROUTE_TABLE_ID}" --subnet-id "${SUBNET_ID}"
 ROUTE_TABLE_ASSOCIATION_ID="$(aws ec2 describe-route-tables \
   --route-table-ids "${ROUTE_TABLE_ID}" \
   --output text --query 'RouteTables[].Associations[].RouteTableAssociationId')"
 echo "ROUTE_TABLE_ASSOCIATION_ID=${ROUTE_TABLE_ASSOCIATION_ID}" >> .ec2-env
 
-aws ec2 create-tags --resources "${ROUTE_TABLE_ID}" --tags 'Key=Name,Value=tailsk8s'
-aws ec2 associate-route-table --route-table-id "${ROUTE_TABLE_ID}" --subnet-id "${SUBNET_ID}"
 aws ec2 create-route \
   --route-table-id "${ROUTE_TABLE_ID}" \
   --destination-cidr-block '0.0.0.0/0' \
@@ -142,6 +143,8 @@ INSTANCE_ID=$(aws ec2 run-instances \
 echo "INSTANCE_ID=${INSTANCE_ID}" >> .ec2-env
 aws ec2 modify-instance-attribute --instance-id "${INSTANCE_ID}" --no-source-dest-check
 aws ec2 create-tags --resources "${INSTANCE_ID}" --tags "Key=Name,Value=${TAILSCALE_DEVICE_NAME}"
+
+aws ec2 wait instance-running --instance-ids "${INSTANCE_ID}"
 ```
 
 > **NOTE**: There may be some issues using a `t3.micro` [instance][1] with
@@ -166,7 +169,7 @@ PUBLIC_IP=$(aws ec2 describe-instances --filters \
   "Name=tag:Name,Values=${TAILSCALE_DEVICE_NAME}" \
   'Name=instance-state-name,Values=running' \
   --output text --query 'Reservations[].Instances[].PublicIpAddress')
-echo "PUBLIC_IP=${PUBLIC_IP}" >> .env
+echo "PUBLIC_IP=${PUBLIC_IP}" >> .ec2-env
 
 ssh -i ./tailsk8s.id_rsa ubuntu@"${PUBLIC_IP}"
 ```
