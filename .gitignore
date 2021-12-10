@@ -1,3 +1,5 @@
 /.ec2-env
 /.extra_authorized_keys
 /k8s-bootstrap-shared/
+/tailsk8s.id_rsa
+/tailsk8s.id_rsa.pub
