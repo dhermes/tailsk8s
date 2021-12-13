@@ -153,6 +153,38 @@ eager-jennings    Ready    control-plane,master   4m37s   v1.22.4
 pedantic-yonath   Ready    control-plane,master   18m10s  v1.22.4
 ```
 
+## Much Later
+
+If a worker node is joining the cluster more than 24 hours after the cluster
+was created, the join token and certificate key will be invalidated. To
+generate a **new** token and key, run the `k8s-join-refresh.sh` [script][5].
+First copy the script onto an existing control plane node from the jump host,
+run the script on the control plane node and then copy back the newly
+regenerated secret files:
+
+```bash
+SSH_TARGET=dhermes@pedantic-yonath
+
+scp _bin/k8s-join-refresh.sh "${SSH_TARGET}":~/
+
+ssh "${SSH_TARGET}"
+# ... run
+
+rm --force k8s-bootstrap-shared/certificate-key.txt k8s-bootstrap-shared/join-token.txt
+REMOTE_FILES="certificate-key.txt,join-token.txt"
+scp \
+  "${SSH_TARGET}":/var/data/tailsk8s-bootstrap/\{"${REMOTE_FILES}"\} \
+  k8s-bootstrap-shared/
+```
+
+To actually carry out that `# ... run` step on the control plane node
+(e.g. on `pedantic-yonath`):
+
+```bash
+./k8s-join-refresh.sh
+rm --force ./k8s-primary-init.sh
+```
+
 ---
 
 Next: [Adding a Worker Node][1]
@@ -161,3 +193,4 @@ Next: [Adding a Worker Node][1]
 [2]: _bin/k8s-control-plane-join.sh
 [3]: _templates/kubeadm-control-plane-join-config.yaml
 [4]: 09-tailscale-cni.md
+[5]: _bin/k8s-join-refresh.sh

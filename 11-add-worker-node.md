@@ -156,6 +156,38 @@ using two as control plane nodes and two as worker nodes. It's worth noting
 that two `etcd` nodes is in some sense **worse** than one `etcd` node, because
 they'll never be able to form [quorum][6] when they disagree.
 
+## Much Later
+
+If a worker node is joining the cluster more than 24 hours after the cluster
+was created, the join token will be invalidated. To generate a **new** token
+(and certificate key), run the `k8s-join-refresh.sh` [script][7]. First copy
+the script onto an existing control plane node from the jump host, run
+the script on the control plane node and then copy back the newly regenerated
+secret files:
+
+```bash
+SSH_TARGET=dhermes@pedantic-yonath
+
+scp _bin/k8s-join-refresh.sh "${SSH_TARGET}":~/
+
+ssh "${SSH_TARGET}"
+# ... run
+
+rm --force k8s-bootstrap-shared/certificate-key.txt k8s-bootstrap-shared/join-token.txt
+REMOTE_FILES="certificate-key.txt,join-token.txt"
+scp \
+  "${SSH_TARGET}":/var/data/tailsk8s-bootstrap/\{"${REMOTE_FILES}"\} \
+  k8s-bootstrap-shared/
+```
+
+To actually carry out that `# ... run` step on the control plane node
+(e.g. on `pedantic-yonath`):
+
+```bash
+./k8s-join-refresh.sh
+rm --force ./k8s-primary-init.sh
+```
+
 ---
 
 Next: [Smoke Test][1]
@@ -166,3 +198,4 @@ Next: [Smoke Test][1]
 [4]: _templates/kubeadm-worker-join-config.yaml
 [5]: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/#stacked-etcd-topology
 [6]: https://etcd.io/docs/v3.3/faq/#why-an-odd-number-of-cluster-members
+[7]: _bin/k8s-join-refresh.sh

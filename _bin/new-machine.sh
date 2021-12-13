@@ -97,6 +97,7 @@ sudo apt-get install --yes \
   containerd.io \
   docker-ce \
   docker-ce-cli \
+  ethtool \
   gettext-base \
   ipset \
   socat \
