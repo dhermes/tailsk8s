@@ -8,6 +8,10 @@
   <img src="./_images/tailsk8s-logos.png?raw=true" />
 </p>
 
+> - Blog [post][28]
+> - [Bare Metal Kubernetes with Tailscale][29] video
+> - [Kubernetes Networking over Tailscale with Public Cloud VMs][30] video
+
 This project walks through setting up a bare metal [Kubernetes][26] cluster
 that uses [Tailscale][27] for networking. For readers already familiar with
 both Kubernetes and Tailscale, you can go directly to
@@ -96,3 +100,6 @@ Logos and Images Attributions:
 [25]: 15-cleaning-up.md
 [26]: https://kubernetes.io/
 [27]: https://tailscale.com/
+[28]: https://blog.bossylobster.com/2021/12/tailsk8s.html
+[29]: https://www.youtube.com/watch?v=ws3mlpRUc8E
+[30]: https://www.youtube.com/watch?v=6oSY0CP9o7o
