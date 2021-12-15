@@ -46,7 +46,7 @@ func NewConfig(opts ...Option) (Config, error) {
 //
 // NOTE: For now this is just a stub wrapper around `http.DefaultClient` but
 //       it's provided here to make the code easier to test at a later date.
-func (c Config) HTTPClient() *http.Client {
+func (Config) HTTPClient() *http.Client {
 	return http.DefaultClient
 }
 
