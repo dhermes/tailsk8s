@@ -9,12 +9,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 func init() {
@@ -25,8 +25,9 @@ func init() {
 // from /Library/Tailscale.
 //
 // In that case the files are:
-//    /Library/Tailscale/ipnport => $port (symlink with localhost port number target)
-//    /Library/Tailscale/sameuserproof-$port is a file with auth
+//
+//	/Library/Tailscale/ipnport => $port (symlink with localhost port number target)
+//	/Library/Tailscale/sameuserproof-$port is a file with auth
 func localTCPPortAndTokenMacsys() (port int, token string, err error) {
 
 	const dir = "/Library/Tailscale"
@@ -49,6 +50,8 @@ func localTCPPortAndTokenMacsys() (port int, token string, err error) {
 	return port, auth, nil
 }
 
+var warnAboutRootOnce sync.Once
+
 func localTCPPortAndTokenDarwin() (port int, token string, err error) {
 	// There are two ways this binary can be run: as the Mac App Store sandboxed binary,
 	// or a normal binary that somebody built or download and are being run from outside
@@ -66,7 +69,7 @@ func localTCPPortAndTokenDarwin() (port int, token string, err error) {
 		// The current binary (this process) is sandboxed. The user is
 		// running the CLI via /Applications/Tailscale.app/Contents/MacOS/Tailscale
 		// which sets the TS_MACOS_CLI_SHARED_DIR environment variable.
-		fis, err := ioutil.ReadDir(dir)
+		fis, err := os.ReadDir(dir)
 		if err != nil {
 			return 0, "", err
 		}
@@ -82,6 +85,14 @@ func localTCPPortAndTokenDarwin() (port int, token string, err error) {
 					}
 				}
 			}
+		}
+		if os.Geteuid() == 0 {
+			// Log a warning as the clue to the user, in case the error
+			// message is swallowed. Only do this once since we may retry
+			// multiple times to connect, and don't want to spam.
+			warnAboutRootOnce.Do(func() {
+				fmt.Fprintf(os.Stderr, "Warning: The CLI is running as root from within a sandboxed binary. It cannot reach the local tailscaled, please try again as a regular user.\n")
+			})
 		}
 		return 0, "", fmt.Errorf("failed to find sandboxed sameuserproof-* file in TS_MACOS_CLI_SHARED_DIR %q", dir)
 	}

@@ -8,12 +8,13 @@ package netmap
 import (
 	"encoding/json"
 	"fmt"
+	"net/netip"
 	"reflect"
 	"strings"
 	"time"
 
-	"inet.af/netaddr"
 	"tailscale.com/tailcfg"
+	"tailscale.com/tka"
 	"tailscale.com/types/key"
 	"tailscale.com/wgengine/filter"
 )
@@ -31,14 +32,15 @@ type NetworkMap struct {
 	Expiry     time.Time
 	// Name is the DNS name assigned to this node.
 	Name          string
-	Addresses     []netaddr.IPPrefix // same as tailcfg.Node.Addresses (IP addresses of this Node directly)
-	LocalPort     uint16             // used for debugging
+	Addresses     []netip.Prefix // same as tailcfg.Node.Addresses (IP addresses of this Node directly)
 	MachineStatus tailcfg.MachineStatus
 	MachineKey    key.MachinePublic
 	Peers         []*tailcfg.Node // sorted by Node.ID
 	DNS           tailcfg.DNSConfig
-	Hostinfo      tailcfg.Hostinfo
-	PacketFilter  []filter.Match
+	// TODO(maisem) : replace with View.
+	Hostinfo     tailcfg.Hostinfo
+	PacketFilter []filter.Match
+	SSHPolicy    *tailcfg.SSHPolicy // or nil, if not enabled/allowed
 
 	// CollectServices reports whether this node's Tailnet has
 	// requested that info about services be included in HostInfo.
@@ -60,12 +62,44 @@ type NetworkMap struct {
 	// check problems.
 	ControlHealth []string
 
+	// TKAEnabled indicates whether the tailnet key authority should be
+	// enabled, from the perspective of the control plane.
+	TKAEnabled bool
+	// TKAHead indicates the control plane's understanding of 'head' (the
+	// hash of the latest update message to tick through TKA).
+	TKAHead tka.AUMHash
+
 	// ACLs
 
-	User   tailcfg.UserID
+	User tailcfg.UserID
+
+	// Domain is the current Tailnet name.
 	Domain string
 
+	// DomainAuditLogID is an audit log ID provided by control and
+	// only populated if the domain opts into data-plane audit logging.
+	// If this is empty, then data-plane audit logging is disabled.
+	DomainAuditLogID string
+
 	UserProfiles map[tailcfg.UserID]tailcfg.UserProfile
+}
+
+// PeerByTailscaleIP returns a peer's Node based on its Tailscale IP.
+//
+// If nm is nil or no peer is found, ok is false.
+func (nm *NetworkMap) PeerByTailscaleIP(ip netip.Addr) (peer *tailcfg.Node, ok bool) {
+	// TODO(bradfitz):
+	if nm == nil {
+		return nil, false
+	}
+	for _, n := range nm.Peers {
+		for _, a := range n.Addresses {
+			if a.Addr() == ip {
+				return n, true
+			}
+		}
+	}
+	return nil, false
 }
 
 // MagicDNSSuffix returns the domain's MagicDNS suffix (even if
@@ -74,8 +108,8 @@ type NetworkMap struct {
 // It will neither start nor end with a period.
 func (nm *NetworkMap) MagicDNSSuffix() string {
 	name := strings.Trim(nm.Name, ".")
-	if i := strings.Index(name, "."); i != -1 {
-		name = name[i+1:]
+	if _, rest, ok := strings.Cut(name, "."); ok {
+		return rest
 	}
 	return name
 }
@@ -100,6 +134,16 @@ func (nm *NetworkMap) VeryConcise() string {
 	return buf.String()
 }
 
+// PeerWithStableID finds and returns the peer associated to the inputted StableNodeID.
+func (nm *NetworkMap) PeerWithStableID(pid tailcfg.StableNodeID) (_ *tailcfg.Node, ok bool) {
+	for _, p := range nm.Peers {
+		if p.StableID == pid {
+			return p, true
+		}
+	}
+	return nil, false
+}
+
 // printConciseHeader prints a concise header line representing nm to buf.
 //
 // If this function is changed to access different fields of nm, keep
@@ -116,9 +160,6 @@ func (nm *NetworkMap) printConciseHeader(buf *strings.Builder) {
 		}
 	}
 	fmt.Fprintf(buf, " u=%s", login)
-	if nm.LocalPort != 0 {
-		fmt.Fprintf(buf, " port=%v", nm.LocalPort)
-	}
 	if nm.Debug != nil {
 		j, _ := json.Marshal(nm.Debug)
 		fmt.Fprintf(buf, " debug=%s", j)
@@ -132,7 +173,6 @@ func (nm *NetworkMap) printConciseHeader(buf *strings.Builder) {
 func (a *NetworkMap) equalConciseHeader(b *NetworkMap) bool {
 	if a.NodeKey != b.NodeKey ||
 		a.MachineStatus != b.MachineStatus ||
-		a.LocalPort != b.LocalPort ||
 		a.User != b.User ||
 		len(a.Addresses) != len(b.Addresses) {
 		return false
@@ -278,7 +318,7 @@ func eqStringsIgnoreNil(a, b []string) bool {
 
 // eqCIDRsIgnoreNil reports whether a and b have the same length and
 // contents, but ignore whether a or b are nil.
-func eqCIDRsIgnoreNil(a, b []netaddr.IPPrefix) bool {
+func eqCIDRsIgnoreNil(a, b []netip.Prefix) bool {
 	if len(a) != len(b) {
 		return false
 	}

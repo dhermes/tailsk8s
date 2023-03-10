@@ -12,7 +12,7 @@ import (
 	"tailscale.com/types/structs"
 )
 
-//go:generate go run tailscale.com/cmd/cloner -type=Persist -output=persist_clone.go
+//go:generate go run tailscale.com/cmd/viewer -type=Persist
 
 // Persist is the JSON type stored on disk on nodes to remember their
 // settings between runs.
@@ -34,6 +34,11 @@ type Persist struct {
 	OldPrivateNodeKey key.NodePrivate // needed to request key rotation
 	Provider          string
 	LoginName         string
+}
+
+// PublicNodeKey returns the public key for the node key.
+func (p *Persist) PublicNodeKey() key.NodePublic {
+	return p.PrivateNodeKey.Public()
 }
 
 func (p *Persist) Equals(p2 *Persist) bool {
@@ -63,7 +68,7 @@ func (p *Persist) Pretty() string {
 		ok = p.OldPrivateNodeKey.Public()
 	}
 	if !p.PrivateNodeKey.IsZero() {
-		nk = p.PrivateNodeKey.Public()
+		nk = p.PublicNodeKey()
 	}
 	return fmt.Sprintf("Persist{lm=%v, o=%v, n=%v u=%#v}",
 		mk.ShortString(), ok.ShortString(), nk.ShortString(), p.LoginName)

@@ -8,31 +8,43 @@ package distro
 import (
 	"os"
 	"runtime"
+	"strconv"
+
+	"tailscale.com/syncs"
 )
 
 type Distro string
 
 const (
-	Debian   = Distro("debian")
-	Arch     = Distro("arch")
-	Synology = Distro("synology")
-	OpenWrt  = Distro("openwrt")
-	NixOS    = Distro("nixos")
-	QNAP     = Distro("qnap")
-	Pfsense  = Distro("pfsense")
-	OPNsense = Distro("opnsense")
-	TrueNAS  = Distro("truenas")
+	Debian    = Distro("debian")
+	Arch      = Distro("arch")
+	Synology  = Distro("synology")
+	OpenWrt   = Distro("openwrt")
+	NixOS     = Distro("nixos")
+	QNAP      = Distro("qnap")
+	Pfsense   = Distro("pfsense")
+	OPNsense  = Distro("opnsense")
+	TrueNAS   = Distro("truenas")
+	Gokrazy   = Distro("gokrazy")
+	WDMyCloud = Distro("wdmycloud")
 )
+
+var distroAtomic syncs.AtomicValue[Distro]
 
 // Get returns the current distro, or the empty string if unknown.
 func Get() Distro {
-	if runtime.GOOS == "linux" {
-		return linuxDistro()
+	if d, ok := distroAtomic.LoadOk(); ok {
+		return d
 	}
-	if runtime.GOOS == "freebsd" {
-		return freebsdDistro()
+	var d Distro
+	switch runtime.GOOS {
+	case "linux":
+		d = linuxDistro()
+	case "freebsd":
+		d = freebsdDistro()
 	}
-	return ""
+	distroAtomic.Store(d) // even if empty
+	return d
 }
 
 func have(file string) bool {
@@ -49,6 +61,9 @@ func linuxDistro() Distro {
 	switch {
 	case haveDir("/usr/syno"):
 		return Synology
+	case have("/usr/local/bin/freenas-debug"):
+		// TrueNAS Scale runs on debian
+		return TrueNAS
 	case have("/etc/debian_version"):
 		return Debian
 	case have("/etc/arch-release"):
@@ -59,6 +74,12 @@ func linuxDistro() Distro {
 		return NixOS
 	case have("/etc/config/uLinux.conf"):
 		return QNAP
+	case haveDir("/gokrazy"):
+		return Gokrazy
+	case have("/usr/local/wdmcserver/bin/wdmc.xml"): // Western Digital MyCloud OS3
+		return WDMyCloud
+	case have("/usr/sbin/wd_crontab.sh"): // Western Digital MyCloud OS5
+		return WDMyCloud
 	}
 	return ""
 }
@@ -70,7 +91,22 @@ func freebsdDistro() Distro {
 	case have("/usr/local/sbin/opnsense-shell"):
 		return OPNsense
 	case have("/usr/local/bin/freenas-debug"):
+		// TrueNAS Core runs on FreeBSD
 		return TrueNAS
 	}
 	return ""
+}
+
+// DSMVersion reports the Synology DSM major version.
+//
+// If not Synology, it reports 0.
+func DSMVersion() int {
+	if runtime.GOOS != "linux" {
+		return 0
+	}
+	if Get() != Synology {
+		return 0
+	}
+	v, _ := strconv.Atoi(os.Getenv("SYNOPKG_DSM_VERSION_MAJOR"))
+	return v
 }

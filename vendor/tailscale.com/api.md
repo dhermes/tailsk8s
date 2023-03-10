@@ -15,14 +15,23 @@ Currently based on {some authentication method}. Visit the [admin panel](https:/
     - [POST device routes](#device-routes-post)
   - Authorize machine
     - [POST device authorized](#device-authorized-post)
+  - Tags
+    - [POST device tags](#device-tags-post)
+  - Key
+    - [POST device key](#device-key-post)
 * **[Tailnets](#tailnet)**
   - ACLs
     - [GET tailnet ACL](#tailnet-acl-get)
-    - [POST tailnet ACL](#tailnet-acl-post): set ACL for a tailnet
-    - [POST tailnet ACL preview](#tailnet-acl-preview-post): preview rule matches on an ACL for a resource
-	- [POST tailnet ACL validate](#tailnet-acl-validate-post): run validation tests against the tailnet's existing ACL
+    - [POST tailnet ACL](#tailnet-acl-post)
+    - [POST tailnet ACL preview](#tailnet-acl-preview-post)
+	- [POST tailnet ACL validate](#tailnet-acl-validate-post)
   - [Devices](#tailnet-devices)
     - [GET tailnet devices](#tailnet-devices-get)
+  - [Keys](#tailnet-keys)
+    - [GET tailnet keys](#tailnet-keys-get)
+    - [POST tailnet key](#tailnet-keys-post)
+    - [GET tailnet key](#tailnet-keys-key-get)
+    - [DELETE tailnet key](#tailnet-keys-key-delete)
   - [DNS](#tailnet-dns)
     - [GET tailnet DNS nameservers](#tailnet-dns-nameservers-get)
     - [POST tailnet DNS nameservers](#tailnet-dns-nameservers-post)
@@ -33,12 +42,12 @@ Currently based on {some authentication method}. Visit the [admin panel](https:/
 
 ## Device
 <!-- TODO: description about what devices are -->
-Each Tailscale-connected device has a globally-unique identifier number which we refer as the "deviceID" or sometimes, just "id". 
+Each Tailscale-connected device has a globally-unique identifier number which we refer as the "deviceID" or sometimes, just "id".
 You can use the deviceID to specify operations on a specific device, like retrieving its subnet routes.
 
-To find the deviceID of a particular device, you can use the ["GET /devices"](#getdevices) API call and generate a list of devices on your network. 
+To find the deviceID of a particular device, you can use the ["GET /devices"](#getdevices) API call and generate a list of devices on your network.
 Find the device you're looking for and get the "id" field.
-This is your deviceID. 
+This is your deviceID.
 
 <a name=device-get></a>
 
@@ -51,7 +60,7 @@ Use the `fields` query parameter to explicitly indicate which fields are returne
 ##### Parameters
 ##### Query Parameters
 `fields` - Controls which fields will be included in the returned response.
-Currently, supported options are: 
+Currently, supported options are:
 * `all`: returns all fields in the response.
 * `default`: return all fields except:
   * `enabledRoutes`
@@ -63,7 +72,7 @@ If more than one option is indicated, then the union is used.
 For example, for `fields=default,all`, all fields are returned.
 If the `fields` parameter is not provided, then the default option is used.
 
-##### Example 
+##### Example
 ```
 GET /api/v2/device/12345
 curl 'https://api.tailscale.com/api/v2/device/12345?fields=all' \
@@ -93,10 +102,10 @@ Response
   "nodeKey":"nodekey:user1-node-key",
   "blocksIncomingConnections":false,
   "enabledRoutes":[
-    
+
   ],
   "advertisedRoutes":[
-    
+
   ],
   "clientConnectivity": {
     "endpoints":[
@@ -132,7 +141,7 @@ Response
 <a name=device-delete></a>
 
 #### `DELETE /api/v2/device/:deviceID` - deletes the device from its tailnet
-Deletes the provided device from its tailnet. 
+Deletes the provided device from its tailnet.
 The device must belong to the user's tailnet.
 Deleting shared/external devices is not supported.
 Supply the device of interest in the path using its ID.
@@ -150,7 +159,7 @@ curl -X DELETE 'https://api.tailscale.com/api/v2/device/12345' \
 
 Response
 
-If successful, the response should be empty: 
+If successful, the response should be empty:
 ```
 < HTTP/1.1 200 OK
 ...
@@ -158,7 +167,7 @@ If successful, the response should be empty:
 * Closing connection 0
 ```
 
-If the device is not owned by your tailnet: 
+If the device is not owned by your tailnet:
 ```
 < HTTP/1.1 501 Not Implemented
 ...
@@ -263,8 +272,70 @@ curl 'https://api.tailscale.com/api/v2/device/11055/authorized' \
 The response is 2xx on success. The response body is currently an empty JSON
 object.
 
-## Tailnet 
-A tailnet is the name of your Tailscale network. 
+<a name=device-tags-post></a>
+
+#### `POST /api/v2/device/:deviceID/tags` - update tags on a device
+
+Updates the tags set on a device.
+
+##### Parameters
+
+###### POST Body
+
+`tags` - The new list of tags for the device.
+
+```
+{
+  "tags": ["tag:foo", "tag:bar"]
+}
+```
+
+##### Example
+
+```
+curl 'https://api.tailscale.com/api/v2/device/11055/tags' \
+-u "tskey-yourapikey123:" \
+--data-binary '{"tags": ["tag:foo", "tag:bar"]}'
+```
+
+The response is 2xx on success. The response body is currently an empty JSON
+object.
+
+<a name=device-key-post></a>
+
+#### `POST /api/v2/device/:deviceID/key` - update device key
+
+Allows for updating properties on the device key.
+
+##### Parameters
+
+###### POST Body
+
+`keyExpiryDisabled`
+
+- Provide `true` to disable the device's key expiry. The original key expiry time is still maintained. Upon re-enabling, the key will expire at that original time.
+- Provide `false` to enable the device's key expiry. Sets the key to expire at the original expiry time prior to disabling. The key may already have expired. In that case, the device must be re-authenticated.
+- Empty value will not change the key expiry.
+
+```
+{
+  "keyExpiryDisabled": true
+}
+```
+
+##### Example
+
+```
+curl 'https://api.tailscale.com/api/v2/device/11055/key' \
+-u "tskey-yourapikey123:" \
+--data-binary '{"keyExpiryDisabled": true}'
+```
+
+The response is 2xx on success. The response body is currently an empty JSON
+object.
+
+## Tailnet
+A tailnet is the name of your Tailscale network.
 You can find it in the top left corner of the [Admin Panel](https://login.tailscale.com/admin) beside the Tailscale logo.
 
 
@@ -544,7 +615,12 @@ Response:
 
 #### `POST /api/v2/tailnet/:tailnet/acl/validate` - run validation tests against the tailnet's active ACL
 
-Runs the provided ACL tests against the tailnet's existing ACL. This endpoint does not modify the ACL in any way.
+This endpoint works in one of two modes:
+
+1. with a request body that's a JSON array, the body is interpreted as ACL tests to run against the domain's current ACLs.
+2. with a request body that's a JSON object, the body is interpreted as a hypothetical new JSON (HuJSON) body with new ACLs, including any tests.
+
+In either case, this endpoint does not modify the ACL in any way.
 
 ##### Parameters
 
@@ -554,24 +630,39 @@ The POST body should be a JSON formatted array of ACL Tests.
 
 See https://tailscale.com/kb/1018/acls for more information on the format of ACL tests.
 
-##### Example
+##### Example with tests
 ```
 POST /api/v2/tailnet/example.com/acl/validate
 curl 'https://api.tailscale.com/api/v2/tailnet/example.com/acl/validate' \
   -u "tskey-yourapikey123:" \
   --data-binary '
-{
   [
     {"User": "user1@example.com", "Allow": ["example-host-1:22"], "Deny": ["example-host-2:100"]}
-  ]
-}'
+  ]'
+```
+
+##### Example with an ACL body
+```
+POST /api/v2/tailnet/example.com/acl/validate
+curl 'https://api.tailscale.com/api/v2/tailnet/example.com/acl/validate' \
+  -u "tskey-yourapikey123:" \
+  --data-binary '
+  {
+    "ACLs": [
+     { "Action": "accept", "src": ["100.105.106.107"], "dst": ["1.2.3.4:*"] },
+    ],
+    "Tests", [
+      {"src": "100.105.106.107", "allow": ["1.2.3.4:80"]}
+    ],
+  }'
 ```
 
 Response:
-If all the tests pass, the response will be empty, with an http status code of 200.
 
-Failed test error response:
-A 400 http status code and the errors in the response body.  
+The HTTP status code will be 200 if the request was well formed and there were no server errors, even in the case of failing tests or an invalid ACL. Look at the response body to determine whether there was a problem within your ACL or tests.
+
+If there's a problem, the response body will be a JSON object with a non-empty `message` property and optionally additional details in `data`:
+
 ```
 {
   "message":"test(s) failed",
@@ -584,6 +675,8 @@ A 400 http status code and the errors in the response body.
 }
 ```
 
+An empty body or a JSON object with no `message` is returned on success.
+
 <a name=tailnet-devices></a>
 
 ### Devices
@@ -591,7 +684,7 @@ A 400 http status code and the errors in the response body.
 <a name=tailnet-devices-get></a>
 
 #### <a name="getdevices"></a> `GET /api/v2/tailnet/:tailnet/devices` - list the devices for a tailnet
-Lists the devices in a tailnet. 
+Lists the devices in a tailnet.
 Supply the tailnet of interest in the path.
 Use the `fields` query parameter to explicitly indicate which fields are returned.
 
@@ -600,7 +693,7 @@ Use the `fields` query parameter to explicitly indicate which fields are returne
 
 ###### Query Parameters
 `fields` - Controls which fields will be included in the returned response.
-Currently, supported options are: 
+Currently, supported options are:
 * `all`: Returns all fields in the response.
 * `default`: return all fields except:
   * `enabledRoutes`
@@ -620,7 +713,7 @@ curl 'https://api.tailscale.com/api/v2/tailnet/example.com/devices' \
   -u "tskey-yourapikey123:"
 ```
 
-Response 
+Response
 ```
 {
   "devices":[
@@ -670,6 +763,177 @@ Response
 }
 ```
 
+<a name=tailnet-keys></a>
+
+### Keys
+
+<a name=tailnet-keys-get></a>
+
+#### `GET /api/v2/tailnet/:tailnet/keys` - list the keys for a tailnet
+
+Returns a list of active keys for a tailnet
+for the user who owns the API key used to perform this query.
+Supply the tailnet of interest in the path.
+
+##### Parameters
+No parameters.
+
+##### Returns
+
+Returns a JSON object with the IDs of all active keys.
+This includes both API keys and also machine authentication keys.
+In the future, this may provide more information about each key than just the ID.
+
+##### Example
+
+```
+curl 'https://api.tailscale.com/api/v2/tailnet/example.com/keys' \
+  -u "tskey-yourapikey123:"
+```
+
+Response:
+```
+{"keys": [
+	{"id": "kYKVU14CNTRL"},
+	{"id": "k68VdZ3CNTRL"},
+	{"id": "kJ9nq43CNTRL"},
+	{"id": "kkThgj1CNTRL"}
+]}
+```
+
+<a name=tailnet-keys-post></a>
+
+#### `POST /api/v2/tailnet/:tailnet/keys` - create a new key for a tailnet
+
+Create a new key in a tailnet associated
+with the user who owns the API key used to perform this request.
+Supply the tailnet in the path.
+
+##### Parameters
+
+###### POST Body
+`capabilities` - A mapping of resources to permissible actions.
+```
+{
+  "capabilities": {
+    "devices": {
+      "create": {
+        "reusable": false,
+        "ephemeral": false,
+        "preauthorized": false,
+        "tags": [
+          "tag:example"
+        ]
+      }
+    }
+  }
+}
+```
+
+##### Returns
+
+Returns a JSON object with the provided capabilities in addition to the
+generated key. The key should be recorded and kept safe and secure as it
+wields the capabilities specified in the request. The identity of the key
+is embedded in the key itself and can be used to perform operations on
+the key (e.g., revoking it or retrieving information about it).
+The full key can no longer be retrieved by the server.
+
+##### Example
+
+```
+echo '{
+  "capabilities": {
+    "devices": {
+      "create": {
+        "reusable": false,
+        "ephemeral": false,
+        "preauthorized": false,
+        "tags": [ "tag:example" ]
+      }
+    }
+  }
+}' | curl -X POST --data-binary @- https://api.tailscale.com/api/v2/tailnet/example.com/keys \
+  -u "tskey-yourapikey123:" \
+  -H "Content-Type: application/json" | jsonfmt
+```
+
+Response:
+```
+{
+	"id":           "k123456CNTRL",
+	"key":          "tskey-k123456CNTRL-abcdefghijklmnopqrstuvwxyz",
+	"created":      "2021-12-09T23:22:39Z",
+	"expires":      "2022-03-09T23:22:39Z",
+	"capabilities": {"devices": {"create": {"reusable": false, "ephemeral": false, "preauthorized": false, "tags": [ "tag:example" ]}}}
+}
+```
+
+<a name=tailnet-keys-key-get></a>
+
+#### `GET /api/v2/tailnet/:tailnet/keys/:keyid` - get information for a specific key
+
+Returns a JSON object with information about specific key.
+Supply the tailnet and key ID of interest in the path.
+
+##### Parameters
+No parameters.
+
+##### Returns
+
+Returns a JSON object with information about the key such as
+when it was created and when it expires.
+It also lists the capabilities associated with the key.
+
+##### Example
+
+```
+curl 'https://api.tailscale.com/api/v2/tailnet/example.com/keys/k123456CNTRL' \
+  -u "tskey-yourapikey123:"
+```
+
+Response:
+```
+{
+  "id": "k123456CNTRL",
+  "created": "2022-05-05T18:55:44Z",
+  "expires": "2022-08-03T18:55:44Z",
+  "capabilities": {
+    "devices": {
+      "create": {
+        "reusable": false,
+        "ephemeral": true,
+        "preauthorized": false,
+        "tags": [
+          "tag:bar",
+          "tag:foo"
+        ]
+      }
+    }
+  }
+}
+```
+
+<a name=tailnet-keys-key-delete></a>
+
+#### `DELETE /api/v2/tailnet/:tailnet/keys/:keyid` - delete a specific key
+
+Deletes a specific key.
+Supply the tailnet and key ID of interest in the path.
+
+##### Parameters
+No parameters.
+
+##### Returns
+This reports status 200 upon success.
+
+##### Example
+
+```
+curl -X DELETE 'https://api.tailscale.com/api/v2/tailnet/example.com/keys/k123456CNTRL' \
+  -u "tskey-yourapikey123:"
+```
+
 <a name=tailnet-dns></a>
 
 ### DNS
@@ -677,13 +941,13 @@ Response
 <a name=tailnet-dns-nameservers-get></a>
 
 #### `GET /api/v2/tailnet/:tailnet/dns/nameservers` - list the DNS nameservers for a tailnet
-Lists the DNS nameservers for a tailnet. 
+Lists the DNS nameservers for a tailnet.
 Supply the tailnet of interest in the path.
 
 ##### Parameters
 No parameters.
 
-##### Example 
+##### Example
 
 ```
 GET /api/v2/tailnet/example.com/dns/nameservers
@@ -691,7 +955,7 @@ curl 'https://api.tailscale.com/api/v2/tailnet/example.com/dns/nameservers' \
   -u "tskey-yourapikey123:"
 ```
 
-Response 
+Response
 ```
 {
   "dns": ["8.8.8.8"],
@@ -701,7 +965,7 @@ Response
 <a name=tailnet-dns-nameservers-post></a>
 
 #### `POST /api/v2/tailnet/:tailnet/dns/nameservers` - replaces the list of DNS nameservers for a tailnet
-Replaces the list of DNS nameservers for the given tailnet with the list supplied by the user. 
+Replaces the list of DNS nameservers for the given tailnet with the list supplied by the user.
 Supply the tailnet of interest in the path.
 Note that changing the list of DNS nameservers may also affect the status of MagicDNS (if MagicDNS is on).
 
@@ -715,7 +979,7 @@ Note that changing the list of DNS nameservers may also affect the status of Mag
 ```
 
 ##### Returns
-Returns the new list of nameservers and the status of MagicDNS. 
+Returns the new list of nameservers and the status of MagicDNS.
 
 If all nameservers have been removed, MagicDNS will be automatically disabled (until explicitly turned back on by the user).
 
@@ -759,31 +1023,31 @@ Retrieves the DNS preferences that are currently set for the given tailnet.
 Supply the tailnet of interest in the path.
 
 ##### Parameters
-No parameters. 
+No parameters.
 
 ##### Example
 ```
 GET /api/v2/tailnet/example.com/dns/preferences
 curl 'https://api.tailscale.com/api/v2/tailnet/example.com/dns/preferences' \
-  -u "tskey-yourapikey123:" 
+  -u "tskey-yourapikey123:"
 ```
 
 Response:
 ```
 {
-  "magicDNS":false, 
+  "magicDNS":false,
 }
 ```
 
 <a name=tailnet-dns-preferences-post></a>
 
-#### `POST /api/v2/tailnet/:tailnet/dns/preferences` - replaces the DNS preferences for a tailnet 
+#### `POST /api/v2/tailnet/:tailnet/dns/preferences` - replaces the DNS preferences for a tailnet
 Replaces the DNS preferences for a tailnet, specifically, the MagicDNS setting.
-Note that MagicDNS is dependent on DNS servers. 
+Note that MagicDNS is dependent on DNS servers.
 
-If there is at least one DNS server, then MagicDNS can be enabled. 
+If there is at least one DNS server, then MagicDNS can be enabled.
 Otherwise, it returns an error.
-Note that removing all nameservers will turn off MagicDNS. 
+Note that removing all nameservers will turn off MagicDNS.
 To reenable it, nameservers must be added back, and MagicDNS must be explicitly turned on.
 
 ##### Parameters
@@ -814,7 +1078,7 @@ If there are no DNS servers, it returns an error message:
 }
 ```
 
-If there are DNS servers: 
+If there are DNS servers:
 ```
 {
   "magicDNS":true,
@@ -823,8 +1087,8 @@ If there are DNS servers:
 
 <a name=tailnet-dns-searchpaths-get></a>
 
-#### `GET /api/v2/tailnet/:tailnet/dns/searchpaths` - retrieves the search paths for a tailnet 
-Retrieves the list of search paths that is currently set for the given tailnet. 
+#### `GET /api/v2/tailnet/:tailnet/dns/searchpaths` - retrieves the search paths for a tailnet
+Retrieves the list of search paths that is currently set for the given tailnet.
 Supply the tailnet of interest in the path.
 
 
@@ -835,7 +1099,7 @@ No parameters.
 ```
 GET /api/v2/tailnet/example.com/dns/searchpaths
 curl 'https://api.tailscale.com/api/v2/tailnet/example.com/dns/searchpaths' \
-  -u "tskey-yourapikey123:" 
+  -u "tskey-yourapikey123:"
 ```
 
 Response:
@@ -847,7 +1111,7 @@ Response:
 
 <a name=tailnet-dns-searchpaths-post></a>
 
-#### `POST /api/v2/tailnet/:tailnet/dns/searchpaths` - replaces the search paths for a tailnet 
+#### `POST /api/v2/tailnet/:tailnet/dns/searchpaths` - replaces the search paths for a tailnet
 Replaces the list of searchpaths with the list supplied by the user and returns an error otherwise.
 
 ##### Parameters
@@ -856,7 +1120,7 @@ Replaces the list of searchpaths with the list supplied by the user and returns 
 `searchPaths` - A list of searchpaths in JSON.
 ```
 {
-  "searchPaths: ["user1.example.com", "user2.example.com"]
+  "searchPaths": ["user1.example.com", "user2.example.com"]
 }
 ```
 

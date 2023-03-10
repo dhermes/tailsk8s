@@ -32,12 +32,24 @@
 #     $ docker exec tailscaled tailscale status
 
 
-FROM golang:1.17-alpine AS build-env
+FROM golang:1.19-alpine AS build-env
 
 WORKDIR /go/src/tailscale
 
 COPY go.mod go.sum ./
 RUN go mod download
+
+# Pre-build some stuff before the following COPY line invalidates the Docker cache.
+RUN go install \
+    github.com/aws/aws-sdk-go-v2/aws \
+    github.com/aws/aws-sdk-go-v2/config \
+    gvisor.dev/gvisor/pkg/tcpip/adapters/gonet \
+    gvisor.dev/gvisor/pkg/tcpip/stack \
+    golang.org/x/crypto/ssh \
+    golang.org/x/crypto/acme \
+    nhooyr.io/websocket \
+    github.com/mdlayher/netlink \
+    golang.zx2c4.com/wireguard/device
 
 COPY . .
 
@@ -50,12 +62,14 @@ ARG VERSION_GIT_HASH=""
 ENV VERSION_GIT_HASH=$VERSION_GIT_HASH
 ARG TARGETARCH
 
-RUN GOARCH=$TARGETARCH go install -tags=xversion -ldflags="\
+RUN GOARCH=$TARGETARCH go install -ldflags="\
       -X tailscale.com/version.Long=$VERSION_LONG \
       -X tailscale.com/version.Short=$VERSION_SHORT \
       -X tailscale.com/version.GitCommit=$VERSION_GIT_HASH" \
       -v ./cmd/tailscale ./cmd/tailscaled
 
-FROM alpine:3.14
+FROM alpine:3.16
 RUN apk add --no-cache ca-certificates iptables iproute2 ip6tables
+
 COPY --from=build-env /go/bin/* /usr/local/bin/
+COPY --from=build-env /go/src/tailscale/docs/k8s/run.sh /usr/local/bin/

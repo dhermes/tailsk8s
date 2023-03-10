@@ -19,10 +19,30 @@
 
 set -eu
 
-eval $(./build_dist.sh shellvars)
+# Use the "go" binary from the "tool" directory (which is github.com/tailscale/go)
+export PATH=$PWD/tool:$PATH
 
-docker build \
-  --build-arg VERSION_LONG=$VERSION_LONG \
-  --build-arg VERSION_SHORT=$VERSION_SHORT \
-  --build-arg VERSION_GIT_HASH=$VERSION_GIT_HASH \
-  -t tailscale:$VERSION_SHORT -t tailscale:latest .
+eval $(./build_dist.sh shellvars)
+DEFAULT_TAGS="v${VERSION_SHORT},v${VERSION_MINOR}"
+DEFAULT_REPOS="tailscale/tailscale,ghcr.io/tailscale/tailscale"
+DEFAULT_BASE="ghcr.io/tailscale/alpine-base:3.16"
+
+PUSH="${PUSH:-false}"
+REPOS="${REPOS:-${DEFAULT_REPOS}}"
+TAGS="${TAGS:-${DEFAULT_TAGS}}"
+BASE="${BASE:-${DEFAULT_BASE}}"
+
+go run github.com/tailscale/mkctr \
+  --gopaths="\
+    tailscale.com/cmd/tailscale:/usr/local/bin/tailscale, \
+    tailscale.com/cmd/tailscaled:/usr/local/bin/tailscaled" \
+  --ldflags="\
+    -X tailscale.com/version.Long=${VERSION_LONG} \
+    -X tailscale.com/version.Short=${VERSION_SHORT} \
+    -X tailscale.com/version.GitCommit=${VERSION_GIT_HASH}" \
+  --files="docs/k8s/run.sh:/tailscale/run.sh" \
+  --base="${BASE}" \
+  --tags="${TAGS}" \
+  --repos="${REPOS}" \
+  --push="${PUSH}" \
+  /bin/sh /tailscale/run.sh

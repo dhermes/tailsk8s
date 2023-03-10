@@ -10,14 +10,14 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sync/atomic"
 
+	"tailscale.com/syncs"
 	"tailscale.com/version/distro"
 )
 
 // AppSharedDir is a string set by the iOS or Android app on start
 // containing a directory we can read/write in.
-var AppSharedDir atomic.Value
+var AppSharedDir syncs.AtomicValue[string]
 
 // DefaultTailscaledSocket returns the path to the tailscaled Unix socket
 // or the empty string if there's no reasonable default.
@@ -28,7 +28,8 @@ func DefaultTailscaledSocket() string {
 	if runtime.GOOS == "darwin" {
 		return "/var/run/tailscaled.socket"
 	}
-	if distro.Get() == distro.Synology {
+	switch distro.Get() {
+	case distro.Synology:
 		// TODO(maisem): be smarter about this. We can parse /etc/VERSION.
 		const dsm6Sock = "/var/packages/Tailscale/etc/tailscaled.sock"
 		const dsm7Sock = "/var/packages/Tailscale/var/tailscaled.sock"
@@ -38,6 +39,8 @@ func DefaultTailscaledSocket() string {
 		if fi, err := os.Stat(dsm7Sock); err == nil && !fi.IsDir() {
 			return dsm7Sock
 		}
+	case distro.Gokrazy:
+		return "/perm/tailscaled/tailscaled.sock"
 	}
 	if fi, err := os.Stat("/var/run"); err == nil && fi.IsDir() {
 		return "/var/run/tailscale/tailscaled.sock"
@@ -60,7 +63,7 @@ func DefaultTailscaledStateFile() string {
 	return ""
 }
 
-// MkStateDir ensures that dirPath, the daemon's configurtaion directory
+// MkStateDir ensures that dirPath, the daemon's configuration directory
 // containing machine keys etc, both exists and has the correct permissions.
 // We want it to only be accessible to the user the daemon is running under.
 func MkStateDir(dirPath string) error {

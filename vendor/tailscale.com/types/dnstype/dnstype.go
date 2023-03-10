@@ -5,16 +5,23 @@
 // Package dnstype defines types for working with DNS.
 package dnstype
 
-//go:generate go run tailscale.com/cmd/cloner --type=Resolver --clonefunc=true --output=dnstype_clone.go
+//go:generate go run tailscale.com/cmd/viewer --type=Resolver --clonefunc=true
 
-import "inet.af/netaddr"
+import (
+	"net/netip"
+)
 
 // Resolver is the configuration for one DNS resolver.
 type Resolver struct {
 	// Addr is the address of the DNS resolver, one of:
-	//  - A plain IP address for a "classic" UDP+TCP DNS resolver
+	//  - A plain IP address for a "classic" UDP+TCP DNS resolver.
+	//    This is the common format as sent by the control plane.
+	//  - An IP:port, for tests.
+	//  - "https://resolver.com/path" for DNS over HTTPS; currently
+	//    as of 2022-09-08 only used for certain well-known resolvers
+	//    (see the publicdns package) for which the IP addresses to dial DoH are
+	//    known ahead of time, so bootstrap DNS resolution is not required.
 	//  - [TODO] "tls://resolver.com" for DNS over TCP+TLS
-	//  - [TODO] "https://resolver.com/query-tmpl" for DNS over HTTPS
 	Addr string `json:",omitempty"`
 
 	// BootstrapResolution is an optional suggested resolution for the
@@ -23,10 +30,25 @@ type Resolver struct {
 	// BootstrapResolution may be empty, in which case clients should
 	// look up the DoT/DoH server using their local "classic" DNS
 	// resolver.
-	BootstrapResolution []netaddr.IP `json:",omitempty"`
+	//
+	// As of 2022-09-08, BootstrapResolution is not yet used.
+	BootstrapResolution []netip.Addr `json:",omitempty"`
 }
 
-// ResolverFromIP defines a Resolver for ip on port 53.
-func ResolverFromIP(ip netaddr.IP) Resolver {
-	return Resolver{Addr: netaddr.IPPortFrom(ip, 53).String()}
+// IPPort returns r.Addr as an IP address and port if either
+// r.Addr is an IP address (the common case) or if r.Addr
+// is an IP:port (as done in tests).
+func (r *Resolver) IPPort() (ipp netip.AddrPort, ok bool) {
+	if r.Addr == "" || r.Addr[0] == 'h' || r.Addr[0] == 't' {
+		// Fast path to avoid ParseIP error allocation for obviously not IP
+		// cases.
+		return
+	}
+	if ip, err := netip.ParseAddr(r.Addr); err == nil {
+		return netip.AddrPortFrom(ip, 53), true
+	}
+	if ipp, err := netip.ParseAddrPort(r.Addr); err == nil {
+		return ipp, true
+	}
+	return
 }

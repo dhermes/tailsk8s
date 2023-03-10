@@ -8,26 +8,31 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"net/netip"
 	"strings"
 
-	"inet.af/netaddr"
+	"tailscale.com/net/netaddr"
 	"tailscale.com/types/ipproto"
 )
 
 const unknown = ipproto.Unknown
 
 // RFC1858: prevent overlapping fragment attacks.
-const minFrag = 60 + 20 // max IPv4 header + basic TCP header
+const minFragBlks = (60 + 20) / 8 // max IPv4 header + basic TCP header in fragment blocks (8 bytes each)
 
 type TCPFlag uint8
 
 const (
-	TCPFin    TCPFlag = 0x01
-	TCPSyn    TCPFlag = 0x02
-	TCPRst    TCPFlag = 0x04
-	TCPPsh    TCPFlag = 0x08
-	TCPAck    TCPFlag = 0x10
-	TCPSynAck TCPFlag = TCPSyn | TCPAck
+	TCPFin     TCPFlag = 0x01
+	TCPSyn     TCPFlag = 0x02
+	TCPRst     TCPFlag = 0x04
+	TCPPsh     TCPFlag = 0x08
+	TCPAck     TCPFlag = 0x10
+	TCPUrg     TCPFlag = 0x20
+	TCPECNEcho TCPFlag = 0x40
+	TCPCWR     TCPFlag = 0x80
+	TCPSynAck  TCPFlag = TCPSyn | TCPAck
+	TCPECNBits TCPFlag = TCPECNEcho | TCPCWR
 )
 
 // Parsed is a minimal decoding of a packet suitable for use in filters.
@@ -49,10 +54,10 @@ type Parsed struct {
 	IPProto ipproto.Proto
 	// SrcIP4 is the source address. Family matches IPVersion. Port is
 	// valid iff IPProto == TCP || IPProto == UDP.
-	Src netaddr.IPPort
+	Src netip.AddrPort
 	// DstIP4 is the destination address. Family matches IPVersion.
-	Dst netaddr.IPPort
-	// TCPFlags is the packet's TCP flag bigs. Valid iff IPProto == TCP.
+	Dst netip.AddrPort
+	// TCPFlags is the packet's TCP flag bits. Valid iff IPProto == TCP.
 	TCPFlags TCPFlag
 }
 
@@ -75,7 +80,7 @@ func (p *Parsed) String() string {
 }
 
 // Decode extracts data from the packet in b into q.
-// It performs extremely simple packet decoding for basic IPv4 packet types.
+// It performs extremely simple packet decoding for basic IPv4 and IPv6 packet types.
 // It extracts only the subprotocol id, IP addresses, and (if any) ports,
 // and shouldn't need any memory allocation.
 func (q *Parsed) Decode(b []byte) {
@@ -122,8 +127,8 @@ func (q *Parsed) decode4(b []byte) {
 	}
 
 	// If it's valid IPv4, then the IP addresses are valid
-	q.Src = q.Src.WithIP(netaddr.IPv4(b[12], b[13], b[14], b[15]))
-	q.Dst = q.Dst.WithIP(netaddr.IPv4(b[16], b[17], b[18], b[19]))
+	q.Src = withIP(q.Src, netaddr.IPv4(b[12], b[13], b[14], b[15]))
+	q.Dst = withIP(q.Dst, netaddr.IPv4(b[16], b[17], b[18], b[19]))
 
 	q.subofs = int((b[0] & 0x0F) << 2)
 	if q.subofs > q.length {
@@ -147,11 +152,12 @@ func (q *Parsed) decode4(b []byte) {
 	// it as Unknown. We can also treat any subsequent fragment that starts
 	// at such a low offset as Unknown.
 	fragFlags := binary.BigEndian.Uint16(b[6:8])
-	moreFrags := (fragFlags & 0x20) != 0
+	moreFrags := (fragFlags & 0x2000) != 0
 	fragOfs := fragFlags & 0x1FFF
+
 	if fragOfs == 0 {
 		// This is the first fragment
-		if moreFrags && len(sub) < minFrag {
+		if moreFrags && len(sub) < minFragBlks {
 			// Suspiciously short first fragment, dump it.
 			q.IPProto = unknown
 			return
@@ -165,8 +171,8 @@ func (q *Parsed) decode4(b []byte) {
 				q.IPProto = unknown
 				return
 			}
-			q.Src = q.Src.WithPort(0)
-			q.Dst = q.Dst.WithPort(0)
+			q.Src = withPort(q.Src, 0)
+			q.Dst = withPort(q.Dst, 0)
 			q.dataofs = q.subofs + icmp4HeaderLength
 			return
 		case ipproto.IGMP:
@@ -178,9 +184,9 @@ func (q *Parsed) decode4(b []byte) {
 				q.IPProto = unknown
 				return
 			}
-			q.Src = q.Src.WithPort(binary.BigEndian.Uint16(sub[0:2]))
-			q.Dst = q.Dst.WithPort(binary.BigEndian.Uint16(sub[2:4]))
-			q.TCPFlags = TCPFlag(sub[13]) & 0x3F
+			q.Src = withPort(q.Src, binary.BigEndian.Uint16(sub[0:2]))
+			q.Dst = withPort(q.Dst, binary.BigEndian.Uint16(sub[2:4]))
+			q.TCPFlags = TCPFlag(sub[13])
 			headerLength := (sub[12] & 0xF0) >> 2
 			q.dataofs = q.subofs + int(headerLength)
 			return
@@ -189,8 +195,8 @@ func (q *Parsed) decode4(b []byte) {
 				q.IPProto = unknown
 				return
 			}
-			q.Src = q.Src.WithPort(binary.BigEndian.Uint16(sub[0:2]))
-			q.Dst = q.Dst.WithPort(binary.BigEndian.Uint16(sub[2:4]))
+			q.Src = withPort(q.Src, binary.BigEndian.Uint16(sub[0:2]))
+			q.Dst = withPort(q.Dst, binary.BigEndian.Uint16(sub[2:4]))
 			q.dataofs = q.subofs + udpHeaderLength
 			return
 		case ipproto.SCTP:
@@ -198,8 +204,8 @@ func (q *Parsed) decode4(b []byte) {
 				q.IPProto = unknown
 				return
 			}
-			q.Src = q.Src.WithPort(binary.BigEndian.Uint16(sub[0:2]))
-			q.Dst = q.Dst.WithPort(binary.BigEndian.Uint16(sub[2:4]))
+			q.Src = withPort(q.Src, binary.BigEndian.Uint16(sub[0:2]))
+			q.Dst = withPort(q.Dst, binary.BigEndian.Uint16(sub[2:4]))
 			return
 		case ipproto.TSMP:
 			// Inter-tailscale messages.
@@ -211,7 +217,7 @@ func (q *Parsed) decode4(b []byte) {
 		}
 	} else {
 		// This is a fragment other than the first one.
-		if fragOfs < minFrag {
+		if fragOfs < minFragBlks {
 			// First frag was suspiciously short, so we can't
 			// trust the followup either.
 			q.IPProto = unknown
@@ -245,10 +251,10 @@ func (q *Parsed) decode6(b []byte) {
 
 	// okay to ignore `ok` here, because IPs pulled from packets are
 	// always well-formed stdlib IPs.
-	srcIP, _ := netaddr.FromStdIP(net.IP(b[8:24]))
-	dstIP, _ := netaddr.FromStdIP(net.IP(b[24:40]))
-	q.Src = q.Src.WithIP(srcIP)
-	q.Dst = q.Dst.WithIP(dstIP)
+	srcIP, _ := netip.AddrFromSlice(net.IP(b[8:24]))
+	dstIP, _ := netip.AddrFromSlice(net.IP(b[24:40]))
+	q.Src = withIP(q.Src, srcIP)
+	q.Dst = withIP(q.Dst, dstIP)
 
 	// We don't support any IPv6 extension headers. Don't try to
 	// be clever. Therefore, the IP subprotocol always starts at
@@ -272,17 +278,17 @@ func (q *Parsed) decode6(b []byte) {
 			q.IPProto = unknown
 			return
 		}
-		q.Src = q.Src.WithPort(0)
-		q.Dst = q.Dst.WithPort(0)
+		q.Src = withPort(q.Src, 0)
+		q.Dst = withPort(q.Dst, 0)
 		q.dataofs = q.subofs + icmp6HeaderLength
 	case ipproto.TCP:
 		if len(sub) < tcpHeaderLength {
 			q.IPProto = unknown
 			return
 		}
-		q.Src = q.Src.WithPort(binary.BigEndian.Uint16(sub[0:2]))
-		q.Dst = q.Dst.WithPort(binary.BigEndian.Uint16(sub[2:4]))
-		q.TCPFlags = TCPFlag(sub[13]) & 0x3F
+		q.Src = withPort(q.Src, binary.BigEndian.Uint16(sub[0:2]))
+		q.Dst = withPort(q.Dst, binary.BigEndian.Uint16(sub[2:4]))
+		q.TCPFlags = TCPFlag(sub[13])
 		headerLength := (sub[12] & 0xF0) >> 2
 		q.dataofs = q.subofs + int(headerLength)
 		return
@@ -291,16 +297,16 @@ func (q *Parsed) decode6(b []byte) {
 			q.IPProto = unknown
 			return
 		}
-		q.Src = q.Src.WithPort(binary.BigEndian.Uint16(sub[0:2]))
-		q.Dst = q.Dst.WithPort(binary.BigEndian.Uint16(sub[2:4]))
+		q.Src = withPort(q.Src, binary.BigEndian.Uint16(sub[0:2]))
+		q.Dst = withPort(q.Dst, binary.BigEndian.Uint16(sub[2:4]))
 		q.dataofs = q.subofs + udpHeaderLength
 	case ipproto.SCTP:
 		if len(sub) < sctpHeaderLength {
 			q.IPProto = unknown
 			return
 		}
-		q.Src = q.Src.WithPort(binary.BigEndian.Uint16(sub[0:2]))
-		q.Dst = q.Dst.WithPort(binary.BigEndian.Uint16(sub[2:4]))
+		q.Src = withPort(q.Src, binary.BigEndian.Uint16(sub[0:2]))
+		q.Dst = withPort(q.Dst, binary.BigEndian.Uint16(sub[2:4]))
 		return
 	case ipproto.TSMP:
 		// Inter-tailscale messages.
@@ -320,8 +326,8 @@ func (q *Parsed) IP4Header() IP4Header {
 	return IP4Header{
 		IPID:    ipid,
 		IPProto: q.IPProto,
-		Src:     q.Src.IP(),
-		Dst:     q.Dst.IP(),
+		Src:     q.Src.Addr(),
+		Dst:     q.Dst.Addr(),
 	}
 }
 
@@ -333,15 +339,12 @@ func (q *Parsed) IP6Header() IP6Header {
 	return IP6Header{
 		IPID:    ipid,
 		IPProto: q.IPProto,
-		Src:     q.Src.IP(),
-		Dst:     q.Dst.IP(),
+		Src:     q.Src.Addr(),
+		Dst:     q.Dst.Addr(),
 	}
 }
 
 func (q *Parsed) ICMP4Header() ICMP4Header {
-	if q.IPVersion != 4 {
-		panic("IP4Header called on non-IPv4 Parsed")
-	}
 	return ICMP4Header{
 		IP4Header: q.IP4Header(),
 		Type:      ICMP4Type(q.b[q.subofs+0]),
@@ -349,10 +352,15 @@ func (q *Parsed) ICMP4Header() ICMP4Header {
 	}
 }
 
-func (q *Parsed) UDP4Header() UDP4Header {
-	if q.IPVersion != 4 {
-		panic("IP4Header called on non-IPv4 Parsed")
+func (q *Parsed) ICMP6Header() ICMP6Header {
+	return ICMP6Header{
+		IP6Header: q.IP6Header(),
+		Type:      ICMP6Type(q.b[q.subofs+0]),
+		Code:      ICMP6Code(q.b[q.subofs+1]),
 	}
+}
+
+func (q *Parsed) UDP4Header() UDP4Header {
 	return UDP4Header{
 		IP4Header: q.IP4Header(),
 		SrcPort:   q.Src.Port(),
@@ -372,8 +380,14 @@ func (q *Parsed) Payload() []byte {
 	return q.b[q.dataofs:q.length]
 }
 
-// IsTCPSyn reports whether q is a TCP SYN packet
-// (i.e. the first packet in a new connection).
+// Transport returns the transport header and payload (IP subprotocol, such as TCP or UDP).
+// This is a read-only view; that is, p retains the ownership of the buffer.
+func (p *Parsed) Transport() []byte {
+	return p.b[p.subofs:]
+}
+
+// IsTCPSyn reports whether q is a TCP SYN packet,
+// without ACK set. (i.e. the first packet in a new connection)
 func (q *Parsed) IsTCPSyn() bool {
 	return (q.TCPFlags & TCPSynAck) == TCPSyn
 }
@@ -410,7 +424,7 @@ func (q *Parsed) IsEchoRequest() bool {
 	}
 }
 
-// IsEchoRequest reports whether q is an IPv4 ICMP Echo Response.
+// IsEchoResponse reports whether q is an IPv4 ICMP Echo Response.
 func (q *Parsed) IsEchoResponse() bool {
 	switch q.IPProto {
 	case ipproto.ICMPv4:
@@ -419,6 +433,29 @@ func (q *Parsed) IsEchoResponse() bool {
 		return len(q.b) >= q.subofs+8 && ICMP6Type(q.b[q.subofs]) == ICMP6EchoReply && ICMP6Code(q.b[q.subofs+1]) == ICMP6NoCode
 	default:
 		return false
+	}
+}
+
+// EchoIDSeq extracts the identifier/sequence bytes from an ICMP Echo response,
+// and returns them as a uint32, used to lookup internally routed ICMP echo
+// responses. This function is intentionally lightweight as it is called on
+// every incoming ICMP packet.
+func (q *Parsed) EchoIDSeq() uint32 {
+	switch q.IPProto {
+	case ipproto.ICMPv4:
+		offset := ip4HeaderLength + icmp4HeaderLength
+		if len(q.b) < offset+4 {
+			return 0
+		}
+		return binary.LittleEndian.Uint32(q.b[offset:])
+	case ipproto.ICMPv6:
+		offset := ip6HeaderLength + icmp6HeaderLength
+		if len(q.b) < offset+4 {
+			return 0
+		}
+		return binary.LittleEndian.Uint32(q.b[offset:])
+	default:
+		return 0
 	}
 }
 
@@ -452,4 +489,12 @@ func Hexdump(b []byte) string {
 		}
 	}
 	return out.String()
+}
+
+func withIP(ap netip.AddrPort, ip netip.Addr) netip.AddrPort {
+	return netip.AddrPortFrom(ip, ap.Port())
+}
+
+func withPort(ap netip.AddrPort, port uint16) netip.AddrPort {
+	return netip.AddrPortFrom(ap.Addr(), port)
 }

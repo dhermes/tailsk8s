@@ -10,6 +10,7 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"errors"
+	"fmt"
 
 	"go4.org/mem"
 	"golang.org/x/crypto/curve25519"
@@ -33,6 +34,10 @@ const (
 	// This prefix is used in the control protocol, so cannot be
 	// changed.
 	nodePublicHexPrefix = "nodekey:"
+
+	// nodePublicBinaryPrefix is the prefix used to identify a
+	// binary-encoded node public key.
+	nodePublicBinaryPrefix = "np"
 
 	// NodePublicRawLen is the length in bytes of a NodePublic, when
 	// serialized with AppendTo, Raw32 or WriteRawWithoutAllocating.
@@ -145,6 +150,18 @@ func (k NodePrivate) UntypedHexString() string {
 // NodePublic is the public portion of a NodePrivate.
 type NodePublic struct {
 	k [32]byte
+}
+
+// Shard returns a uint8 number from a public key with
+// mostly-uniform distribution, suitable for sharding.
+func (p NodePublic) Shard() uint8 {
+	// A 25519 public key isn't uniformly random, as it ultimately
+	// corresponds to a point on the curve.
+	// But we don't need perfectly uniformly-random, we need
+	// good-enough-for-sharding random, so we haphazardly
+	// combine raw values of the key to give us something sufficient.
+	s := uint8(p.k[31]) + uint8(p.k[30]) + uint8(p.k[20])
+	return s ^ uint8(p.k[2]+p.k[12])
 }
 
 // ParseNodePublicUntyped parses an untyped 64-character hex value
@@ -283,6 +300,28 @@ func (k NodePublic) MarshalText() ([]byte, error) {
 // MarshalText implements encoding.TextUnmarshaler.
 func (k *NodePublic) UnmarshalText(b []byte) error {
 	return parseHex(k.k[:], mem.B(b), mem.S(nodePublicHexPrefix))
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (k NodePublic) MarshalBinary() (data []byte, err error) {
+	b := make([]byte, len(nodePublicBinaryPrefix)+NodePublicRawLen)
+	copy(b[:len(nodePublicBinaryPrefix)], nodePublicBinaryPrefix)
+	copy(b[len(nodePublicBinaryPrefix):], k.k[:])
+	return b, nil
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (k *NodePublic) UnmarshalBinary(in []byte) error {
+	data := mem.B(in)
+	if !mem.HasPrefix(data, mem.S(nodePublicBinaryPrefix)) {
+		return fmt.Errorf("missing/incorrect type prefix %s", nodePublicBinaryPrefix)
+	}
+	if want, got := len(nodePublicBinaryPrefix)+NodePublicRawLen, data.Len(); want != got {
+		return fmt.Errorf("incorrect len for NodePublic (%d != %d)", got, want)
+	}
+
+	data.SliceFrom(len(nodePublicBinaryPrefix)).Copy(k.k[:])
+	return nil
 }
 
 // WireGuardGoString prints k in the same format used by wireguard-go.

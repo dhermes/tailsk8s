@@ -8,10 +8,11 @@ Private WireGuard® networks made easy
 
 This repository contains all the open source Tailscale client code and
 the `tailscaled` daemon and `tailscale` CLI tool. The `tailscaled`
-daemon runs primarily on Linux; it also works to varying degrees on
-FreeBSD, OpenBSD, Darwin, and Windows.
+daemon runs on Linux, Windows and [macOS](https://tailscale.com/kb/1065/macos-variants/), and to varying degrees on FreeBSD, OpenBSD, and Darwin. (The Tailscale iOS and Android apps use this repo's code, but this repo doesn't contain the mobile GUI code.)
 
 The Android app is at https://github.com/tailscale/tailscale-android
+
+The Synology package is at https://github.com/tailscale/tailscale-synology
 
 ## Using
 
@@ -42,10 +43,7 @@ If your distro has conventions that preclude the use of
 `build_dist.sh`, please do the equivalent of what it does in your
 distro's way, so that bug reports contain useful version information.
 
-We only guarantee to support the latest Go release and any Go beta or
-release candidate builds (currently Go 1.17) in module mode. It might
-work in earlier Go versions or in GOPATH mode, but we're making no
-effort to keep those working.
+We require the latest Go release, currently Go 1.19.
 
 ## Bugs
 

@@ -2,15 +2,21 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package apitype contains types for the Tailscale local API.
+// Package apitype contains types for the Tailscale local API and control plane API.
 package apitype
 
 import "tailscale.com/tailcfg"
+
+// LocalAPIHost is the Host header value used by the LocalAPI.
+const LocalAPIHost = "local-tailscaled.sock"
 
 // WhoIsResponse is the JSON type returned by tailscaled debug server's /whois?ip=$IP handler.
 type WhoIsResponse struct {
 	Node        *tailcfg.Node
 	UserProfile *tailcfg.UserProfile
+
+	// Caps are extra capabilities that the remote Node has to this node.
+	Caps []string `json:",omitempty"`
 }
 
 // FileTarget is a node to which files can be sent, and the PeerAPI

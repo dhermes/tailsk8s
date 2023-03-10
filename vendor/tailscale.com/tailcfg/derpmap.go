@@ -20,7 +20,7 @@ type DERPMap struct {
 	OmitDefaultRegions bool `json:"omitDefaultRegions,omitempty"`
 }
 
-/// RegionIDs returns the sorted region IDs.
+// / RegionIDs returns the sorted region IDs.
 func (m *DERPMap) RegionIDs() []int {
 	ret := make([]int, 0, len(m.Regions))
 	for rid := range m.Regions {
@@ -144,3 +144,6 @@ type DERPNode struct {
 	// If empty, it's assumed to be the same as the DERP server.
 	STUNTestIP string `json:",omitempty"`
 }
+
+// DotInvalid is a fake DNS TLD used in tests for an invalid hostname.
+const DotInvalid = ".invalid"

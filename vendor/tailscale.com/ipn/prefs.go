@@ -7,32 +7,42 @@ package ipn
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
 
-	"inet.af/netaddr"
 	"tailscale.com/atomicfile"
+	"tailscale.com/ipn/ipnstate"
+	"tailscale.com/net/netaddr"
+	"tailscale.com/net/tsaddr"
 	"tailscale.com/tailcfg"
 	"tailscale.com/types/persist"
 	"tailscale.com/types/preftype"
+	"tailscale.com/util/dnsname"
 )
 
-//go:generate go run tailscale.com/cmd/cloner -type=Prefs -output=prefs_clone.go
+//go:generate go run tailscale.com/cmd/viewer -type=Prefs
 
 // DefaultControlURL is the URL base of the control plane
 // ("coordination server") for use when no explicit one is configured.
 // The default control plane is the hosted version run by Tailscale.com.
 const DefaultControlURL = "https://controlplane.tailscale.com"
 
+var (
+	// ErrExitNodeIDAlreadySet is returned from (*Prefs).SetExitNodeIP when the
+	// Prefs.ExitNodeID field is already set.
+	ErrExitNodeIDAlreadySet = errors.New("cannot set ExitNodeIP when ExitNodeID is already set")
+)
+
 // IsLoginServerSynonym reports whether a URL is a drop-in replacement
 // for the primary Tailscale login server.
-func IsLoginServerSynonym(val interface{}) bool {
+func IsLoginServerSynonym(val any) bool {
 	return val == "https://login.tailscale.com" || val == "https://controlplane.tailscale.com"
 }
 
@@ -88,7 +98,7 @@ type Prefs struct {
 	// blackhole route will be installed on the local system to
 	// prevent any traffic escaping to the local network.
 	ExitNodeID tailcfg.StableNodeID
-	ExitNodeIP netaddr.IP
+	ExitNodeIP netip.Addr
 
 	// ExitNodeAllowLANAccess indicates whether locally accessible subnets should be
 	// routed directly or via the exit node.
@@ -97,6 +107,11 @@ type Prefs struct {
 	// CorpDNS specifies whether to install the Tailscale network's
 	// DNS configuration, if it exists.
 	CorpDNS bool
+
+	// RunSSH bool is whether this node should run an SSH
+	// server, permitting access to peers according to the
+	// policies as configured by the Tailnet's admin(s).
+	RunSSH bool
 
 	// WantRunning indicates whether networking should be active on
 	// this node.
@@ -147,12 +162,15 @@ type Prefs struct {
 	// for Linux/etc, which always operate in daemon mode.
 	ForceDaemon bool `json:"ForceDaemon,omitempty"`
 
+	// Egg is a optional debug flag.
+	Egg bool
+
 	// The following block of options only have an effect on Linux.
 
 	// AdvertiseRoutes specifies CIDR prefixes to advertise into the
 	// Tailscale network as reachable through the current
 	// node.
-	AdvertiseRoutes []netaddr.IPPrefix
+	AdvertiseRoutes []netip.Prefix
 
 	// NoSNAT specifies whether to source NAT traffic going to
 	// destinations in AdvertiseRoutes. The default is to apply source
@@ -193,6 +211,7 @@ type MaskedPrefs struct {
 	ExitNodeIPSet             bool `json:",omitempty"`
 	ExitNodeAllowLANAccessSet bool `json:",omitempty"`
 	CorpDNSSet                bool `json:",omitempty"`
+	RunSSHSet                 bool `json:",omitempty"`
 	WantRunningSet            bool `json:",omitempty"`
 	LoggedOutSet              bool `json:",omitempty"`
 	ShieldsUpSet              bool `json:",omitempty"`
@@ -200,6 +219,7 @@ type MaskedPrefs struct {
 	HostnameSet               bool `json:",omitempty"`
 	NotepadURLsSet            bool `json:",omitempty"`
 	ForceDaemonSet            bool `json:",omitempty"`
+	EggSet                    bool `json:",omitempty"`
 	AdvertiseRoutesSet        bool `json:",omitempty"`
 	NoSNATSet                 bool `json:",omitempty"`
 	NetfilterModeSet          bool `json:",omitempty"`
@@ -268,6 +288,8 @@ func (m *MaskedPrefs) Pretty() string {
 // IsEmpty reports whether p is nil or pointing to a Prefs zero value.
 func (p *Prefs) IsEmpty() bool { return p == nil || p.Equals(&Prefs{}) }
 
+func (p PrefsView) Pretty() string { return p.ж.Pretty() }
+
 func (p *Prefs) Pretty() string { return p.pretty(runtime.GOOS) }
 func (p *Prefs) pretty(goos string) string {
 	var sb strings.Builder
@@ -277,6 +299,9 @@ func (p *Prefs) pretty(goos string) string {
 		sb.WriteString("mesh=false ")
 	}
 	fmt.Fprintf(&sb, "dns=%v want=%v ", p.CorpDNS, p.WantRunning)
+	if p.RunSSH {
+		sb.WriteString("ssh=true ")
+	}
 	if p.LoggedOut {
 		sb.WriteString("loggedout=true ")
 	}
@@ -289,7 +314,7 @@ func (p *Prefs) pretty(goos string) string {
 	if p.ShieldsUp {
 		sb.WriteString("shields=true ")
 	}
-	if !p.ExitNodeIP.IsZero() {
+	if p.ExitNodeIP.IsValid() {
 		fmt.Fprintf(&sb, "exit=%v lan=%t ", p.ExitNodeIP, p.ExitNodeAllowLANAccess)
 	} else if !p.ExitNodeID.IsZero() {
 		fmt.Fprintf(&sb, "exit=%v lan=%t ", p.ExitNodeID, p.ExitNodeAllowLANAccess)
@@ -324,12 +349,20 @@ func (p *Prefs) pretty(goos string) string {
 	return sb.String()
 }
 
+func (p PrefsView) ToBytes() []byte {
+	return p.ж.ToBytes()
+}
+
 func (p *Prefs) ToBytes() []byte {
 	data, err := json.MarshalIndent(p, "", "\t")
 	if err != nil {
 		log.Fatalf("Prefs marshal: %v\n", err)
 	}
 	return data
+}
+
+func (p PrefsView) Equals(p2 PrefsView) bool {
+	return p.ж.Equals(p2.ж)
 }
 
 func (p *Prefs) Equals(p2 *Prefs) bool {
@@ -348,6 +381,7 @@ func (p *Prefs) Equals(p2 *Prefs) bool {
 		p.ExitNodeIP == p2.ExitNodeIP &&
 		p.ExitNodeAllowLANAccess == p2.ExitNodeAllowLANAccess &&
 		p.CorpDNS == p2.CorpDNS &&
+		p.RunSSH == p2.RunSSH &&
 		p.WantRunning == p2.WantRunning &&
 		p.LoggedOut == p2.LoggedOut &&
 		p.NotepadURLs == p2.NotepadURLs &&
@@ -362,7 +396,7 @@ func (p *Prefs) Equals(p2 *Prefs) bool {
 		p.Persist.Equals(p2.Persist)
 }
 
-func compareIPNets(a, b []netaddr.IPPrefix) bool {
+func compareIPNets(a, b []netip.Prefix) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -408,9 +442,22 @@ func NewPrefs() *Prefs {
 }
 
 // ControlURLOrDefault returns the coordination server's URL base.
-// If not configured, DefaultControlURL is returned instead.
+//
+// If not configured, or if the configured value is a legacy name equivalent to
+// the default, then DefaultControlURL is returned instead.
+func (p PrefsView) ControlURLOrDefault() string {
+	return p.ж.ControlURLOrDefault()
+}
+
+// ControlURLOrDefault returns the coordination server's URL base.
+//
+// If not configured, or if the configured value is a legacy name equivalent to
+// the default, then DefaultControlURL is returned instead.
 func (p *Prefs) ControlURLOrDefault() string {
 	if p.ControlURL != "" {
+		if p.ControlURL != DefaultControlURL && IsLoginServerSynonym(p.ControlURL) {
+			return DefaultControlURL
+		}
 		return p.ControlURL
 	}
 	return DefaultControlURL
@@ -426,10 +473,153 @@ func (p *Prefs) AdminPageURL() string {
 	return url + "/admin/machines"
 }
 
-// PrefsFromBytes deserializes Prefs from a JSON blob. If
-// enforceDefaults is true, Prefs.RouteAll and Prefs.AllowSingleHosts
-// are forced on.
-func PrefsFromBytes(b []byte, enforceDefaults bool) (*Prefs, error) {
+// AdvertisesExitNode reports whether p is advertising both the v4 and
+// v6 /0 exit node routes.
+func (p *Prefs) AdvertisesExitNode() bool {
+	if p == nil {
+		return false
+	}
+	return tsaddr.ContainsExitRoutes(p.AdvertiseRoutes)
+}
+
+// SetAdvertiseExitNode mutates p (if non-nil) to add or remove the two
+// /0 exit node routes.
+func (p *Prefs) SetAdvertiseExitNode(runExit bool) {
+	if p == nil {
+		return
+	}
+	all := p.AdvertiseRoutes
+	p.AdvertiseRoutes = p.AdvertiseRoutes[:0]
+	for _, r := range all {
+		if r.Bits() != 0 {
+			p.AdvertiseRoutes = append(p.AdvertiseRoutes, r)
+		}
+	}
+	if !runExit {
+		return
+	}
+	p.AdvertiseRoutes = append(p.AdvertiseRoutes,
+		netip.PrefixFrom(netaddr.IPv4(0, 0, 0, 0), 0),
+		netip.PrefixFrom(netip.IPv6Unspecified(), 0))
+}
+
+// peerWithTailscaleIP returns the peer in st with the provided
+// Tailscale IP.
+func peerWithTailscaleIP(st *ipnstate.Status, ip netip.Addr) (ps *ipnstate.PeerStatus, ok bool) {
+	for _, ps := range st.Peer {
+		for _, ip2 := range ps.TailscaleIPs {
+			if ip == ip2 {
+				return ps, true
+			}
+		}
+	}
+	return nil, false
+}
+
+func isRemoteIP(st *ipnstate.Status, ip netip.Addr) bool {
+	for _, selfIP := range st.TailscaleIPs {
+		if ip == selfIP {
+			return false
+		}
+	}
+	return true
+}
+
+// ClearExitNode sets the ExitNodeID and ExitNodeIP to their zero values.
+func (p *Prefs) ClearExitNode() {
+	p.ExitNodeID = ""
+	p.ExitNodeIP = netip.Addr{}
+}
+
+// ExitNodeLocalIPError is returned when the requested IP address for an exit
+// node belongs to the local machine.
+type ExitNodeLocalIPError struct {
+	hostOrIP string
+}
+
+func (e ExitNodeLocalIPError) Error() string {
+	return fmt.Sprintf("cannot use %s as an exit node as it is a local IP address to this machine", e.hostOrIP)
+}
+
+func exitNodeIPOfArg(s string, st *ipnstate.Status) (ip netip.Addr, err error) {
+	if s == "" {
+		return ip, os.ErrInvalid
+	}
+	ip, err = netip.ParseAddr(s)
+	if err == nil {
+		// If we're online already and have a netmap, double check that the IP
+		// address specified is valid.
+		if st.BackendState == "Running" {
+			ps, ok := peerWithTailscaleIP(st, ip)
+			if !ok {
+				return ip, fmt.Errorf("no node found in netmap with IP %v", ip)
+			}
+			if !ps.ExitNodeOption {
+				return ip, fmt.Errorf("node %v is not advertising an exit node", ip)
+			}
+		}
+		if !isRemoteIP(st, ip) {
+			return ip, ExitNodeLocalIPError{s}
+		}
+		return ip, nil
+	}
+	match := 0
+	for _, ps := range st.Peer {
+		baseName := dnsname.TrimSuffix(ps.DNSName, st.MagicDNSSuffix)
+		if !strings.EqualFold(s, baseName) {
+			continue
+		}
+		match++
+		if len(ps.TailscaleIPs) == 0 {
+			return ip, fmt.Errorf("node %q has no Tailscale IP?", s)
+		}
+		if !ps.ExitNodeOption {
+			return ip, fmt.Errorf("node %q is not advertising an exit node", s)
+		}
+		ip = ps.TailscaleIPs[0]
+	}
+	switch match {
+	case 0:
+		return ip, fmt.Errorf("invalid value %q for --exit-node; must be IP or unique node name", s)
+	case 1:
+		if !isRemoteIP(st, ip) {
+			return ip, ExitNodeLocalIPError{s}
+		}
+		return ip, nil
+	default:
+		return ip, fmt.Errorf("ambiguous exit node name %q", s)
+	}
+}
+
+// SetExitNodeIP validates and sets the ExitNodeIP from a user-provided string
+// specifying either an IP address or a MagicDNS base name ("foo", as opposed to
+// "foo.bar.beta.tailscale.net"). This method does not mutate ExitNodeID and
+// will fail if ExitNodeID is already set.
+func (p *Prefs) SetExitNodeIP(s string, st *ipnstate.Status) error {
+	if !p.ExitNodeID.IsZero() {
+		return ErrExitNodeIDAlreadySet
+	}
+	ip, err := exitNodeIPOfArg(s, st)
+	if err == nil {
+		p.ExitNodeIP = ip
+	}
+	return err
+}
+
+// ShouldSSHBeRunning reports whether the SSH server should be running based on
+// the prefs.
+func (p PrefsView) ShouldSSHBeRunning() bool {
+	return p.Valid() && p.ж.ShouldSSHBeRunning()
+}
+
+// ShouldSSHBeRunning reports whether the SSH server should be running based on
+// the prefs.
+func (p *Prefs) ShouldSSHBeRunning() bool {
+	return p.WantRunning && p.RunSSH
+}
+
+// PrefsFromBytes deserializes Prefs from a JSON blob.
+func PrefsFromBytes(b []byte) (*Prefs, error) {
 	p := NewPrefs()
 	if len(b) == 0 {
 		return p, nil
@@ -445,17 +635,13 @@ func PrefsFromBytes(b []byte, enforceDefaults bool) (*Prefs, error) {
 			log.Printf("Prefs parse: %v: %v\n", err, b)
 		}
 	}
-	if enforceDefaults {
-		p.RouteAll = true
-		p.AllowSingleHosts = true
-	}
 	return p, err
 }
 
 // LoadPrefs loads a legacy relaynode config file into Prefs
 // with sensible migration defaults set.
 func LoadPrefs(filename string) (*Prefs, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("LoadPrefs open: %w", err) // err includes path
 	}
@@ -467,7 +653,7 @@ func LoadPrefs(filename string) (*Prefs, error) {
 		// to log in again. (better than crashing)
 		return nil, os.ErrNotExist
 	}
-	p, err := PrefsFromBytes(data, false)
+	p, err := PrefsFromBytes(data)
 	if err != nil {
 		return nil, fmt.Errorf("LoadPrefs(%q) decode: %w", filename, err)
 	}

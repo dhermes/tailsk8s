@@ -9,25 +9,93 @@ package logger
 
 import (
 	"bufio"
+	"bytes"
 	"container/list"
+	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"context"
+
+	"tailscale.com/envknob"
 )
 
 // Logf is the basic Tailscale logger type: a printf-like func.
 // Like log.Printf, the format need not end in a newline.
 // Logf functions must be safe for concurrent use.
-type Logf func(format string, args ...interface{})
+type Logf func(format string, args ...any)
+
+// A Context is a context.Context that should contain a custom log function, obtainable from FromContext.
+// If no log function is present, FromContext will return log.Printf.
+// To construct a Context, use Add
+type Context context.Context
+
+type logfKey struct{}
+
+// jenc is a json.Encode + bytes.Buffer pair wired up to be reused in a pool.
+type jenc struct {
+	buf bytes.Buffer
+	enc *json.Encoder
+}
+
+var jencPool = &sync.Pool{New: func() any {
+	je := new(jenc)
+	je.enc = json.NewEncoder(&je.buf)
+	return je
+}}
+
+// JSON marshals v as JSON and writes it to logf formatted with the annotation to make logtail
+// treat it as a structured log.
+//
+// The recType is the record type and becomes the key of the wrapper
+// JSON object that is logged. That is, if recType is "foo" and v is
+// 123, the value logged is {"foo":123}.
+//
+// Do not use recType "logtail", "v", "text", or "metrics", with any case.
+// Those are reserved for the logging system.
+//
+// The level can be from 0 to 9. Levels from 1 to 9 are included in
+// the logged JSON object, like {"foo":123,"v":2}.
+func (logf Logf) JSON(level int, recType string, v any) {
+	je := jencPool.Get().(*jenc)
+	defer jencPool.Put(je)
+	je.buf.Reset()
+	je.buf.WriteByte('{')
+	je.enc.Encode(recType)
+	je.buf.Truncate(je.buf.Len() - 1) // remove newline from prior Encode
+	je.buf.WriteByte(':')
+	if err := je.enc.Encode(v); err != nil {
+		logf("[unexpected]: failed to encode structured JSON log record of type %q / %T: %v", recType, v, err)
+		return
+	}
+	je.buf.Truncate(je.buf.Len() - 1) // remove newline from prior Encode
+	je.buf.WriteByte('}')
+	// Magic prefix recognized by logtail:
+	logf("[v\x00JSON]%d%s", level%10, je.buf.Bytes())
+
+}
+
+// FromContext extracts a log function from ctx.
+func FromContext(ctx Context) Logf {
+	v := ctx.Value(logfKey{})
+	if v == nil {
+		return log.Printf
+	}
+	return v.(Logf)
+}
+
+// Ctx constructs a Context from ctx with fn as its custom log function.
+func Ctx(ctx context.Context, fn Logf) Context {
+	return context.WithValue(ctx, logfKey{}, fn)
+}
 
 // WithPrefix wraps f, prefixing each format with the provided prefix.
 func WithPrefix(f Logf, prefix string) Logf {
-	return func(format string, args ...interface{}) {
+	return func(format string, args ...any) {
 		f(prefix+format, args...)
 	}
 }
@@ -50,7 +118,7 @@ func (w funcWriter) Write(p []byte) (int, error) {
 }
 
 // Discard is a Logf that throws away the logs given to it.
-func Discard(string, ...interface{}) {}
+func Discard(string, ...any) {}
 
 // limitData is used to keep track of each format string's associated
 // rate-limiting data.
@@ -59,8 +127,6 @@ type limitData struct {
 	nBlocked int           // number of messages skipped
 	ele      *list.Element // list element used to access this string in the cache
 }
-
-var disableRateLimit = os.Getenv("TS_DEBUG_LOG_RATE") == "all"
 
 // rateFree are format string substrings that are exempt from rate limiting.
 // Things should not be added to this unless they're already limited otherwise
@@ -72,6 +138,8 @@ var rateFree = []string{
 	"SetPrefs: %v",
 	"peer keys: %s",
 	"v%v peers: %v",
+	// debug messages printed by 'tailscale bugreport'
+	"diag: ",
 }
 
 // RateLimitedFn is a wrapper for RateLimitedFnWithClock that includes the
@@ -87,7 +155,7 @@ func RateLimitedFn(logf Logf, f time.Duration, burst int, maxCache int) Logf {
 // timeNow is a function that returns the current time, used for calculating
 // rate limits.
 func RateLimitedFnWithClock(logf Logf, f time.Duration, burst int, maxCache int, timeNow func() time.Time) Logf {
-	if disableRateLimit {
+	if envknob.String("TS_DEBUG_LOG_RATE") == "all" {
 		return logf
 	}
 	var (
@@ -96,7 +164,7 @@ func RateLimitedFnWithClock(logf Logf, f time.Duration, burst int, maxCache int,
 		msgCache = list.New()                  // a rudimentary LRU that limits the size of the map
 	)
 
-	return func(format string, args ...interface{}) {
+	return func(format string, args ...any) {
 		// Shortcut for formats with no rate limit
 		for _, sub := range rateFree {
 			if strings.Contains(format, sub) {
@@ -170,7 +238,7 @@ func LogOnChange(logf Logf, maxInterval time.Duration, timeNow func() time.Time)
 		tLastLogged = timeNow()
 	)
 
-	return func(format string, args ...interface{}) {
+	return func(format string, args ...any) {
 		s := fmt.Sprintf(format, args...)
 
 		mu.Lock()
@@ -201,13 +269,13 @@ func (fn ArgWriter) Format(f fmt.State, _ rune) {
 	argBufioPool.Put(bw)
 }
 
-var argBufioPool = &sync.Pool{New: func() interface{} { return bufio.NewWriterSize(ioutil.Discard, 1024) }}
+var argBufioPool = &sync.Pool{New: func() any { return bufio.NewWriterSize(io.Discard, 1024) }}
 
 // Filtered returns a Logf that silently swallows some log lines.
 // Each inbound format and args is evaluated and printed to a string s.
 // The original format and args are passed to logf if and only if allow(s) returns true.
 func Filtered(logf Logf, allow func(s string) bool) Logf {
-	return func(format string, args ...interface{}) {
+	return func(format string, args ...any) {
 		msg := fmt.Sprintf(format, args...)
 		if !allow(msg) {
 			return
@@ -228,7 +296,7 @@ func LogfCloser(logf Logf) (newLogf Logf, close func()) {
 		defer mu.Unlock()
 		closed = true
 	}
-	newLogf = func(msg string, args ...interface{}) {
+	newLogf = func(msg string, args ...any) {
 		mu.Lock()
 		if closed {
 			mu.Unlock()

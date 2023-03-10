@@ -12,14 +12,15 @@ import (
 	"html"
 	"io"
 	"log"
+	"net/netip"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
-	"inet.af/netaddr"
 	"tailscale.com/tailcfg"
 	"tailscale.com/types/key"
+	"tailscale.com/types/views"
 	"tailscale.com/util/dnsname"
 )
 
@@ -34,20 +35,26 @@ type Status struct {
 	BackendState string
 
 	AuthURL      string       // current URL provided by control to authorize client
-	TailscaleIPs []netaddr.IP // Tailscale IP(s) assigned to this node
+	TailscaleIPs []netip.Addr // Tailscale IP(s) assigned to this node
 	Self         *PeerStatus
+
+	// ExitNodeStatus describes the current exit node.
+	// If nil, an exit node is not in use.
+	ExitNodeStatus *ExitNodeStatus `json:"ExitNodeStatus,omitempty"`
 
 	// Health contains health check problems.
 	// Empty means everything is good. (or at least that no known
 	// problems are detected)
 	Health []string
 
-	// MagicDNSSuffix is the network's MagicDNS suffix for nodes
-	// in the network such as "userfoo.tailscale.net".
-	// There are no surrounding dots.
-	// MagicDNSSuffix should be populated regardless of whether a domain
-	// has MagicDNS enabled.
+	// This field is the legacy name of CurrentTailnet.MagicDNSSuffix.
+	//
+	// Deprecated: use CurrentTailnet.MagicDNSSuffix instead.
 	MagicDNSSuffix string
+
+	// CurrentTailnet is information about the tailnet that the node
+	// is currently connected to. When not connected, this field is nil.
+	CurrentTailnet *TailnetStatus
 
 	// CertDomains are the set of DNS names for which the control
 	// plane server will assist with provisioning TLS
@@ -60,6 +67,51 @@ type Status struct {
 	User map[tailcfg.UserID]tailcfg.UserProfile
 }
 
+// NetworkLockStatus represents whether network-lock is enabled,
+// along with details about the locally-known state of the tailnet
+// key authority.
+type NetworkLockStatus struct {
+	// Enabled is true if network lock is enabled.
+	Enabled bool
+
+	// Head describes the AUM hash of the leaf AUM. Head is nil
+	// if network lock is not enabled.
+	Head *[32]byte
+
+	// PublicKey describes the nodes' network-lock public key.
+	PublicKey key.NLPublic
+}
+
+// TailnetStatus is information about a Tailscale network ("tailnet").
+type TailnetStatus struct {
+	// Name is the name of the network that's currently in use.
+	Name string
+
+	// MagicDNSSuffix is the network's MagicDNS suffix for nodes
+	// in the network such as "userfoo.tailscale.net".
+	// There are no surrounding dots.
+	// MagicDNSSuffix should be populated regardless of whether a domain
+	// has MagicDNS enabled.
+	MagicDNSSuffix string
+
+	// MagicDNSEnabled is whether or not the network has MagicDNS enabled.
+	// Note that the current device may still not support MagicDNS if
+	// `--accept-dns=false` was used.
+	MagicDNSEnabled bool
+}
+
+// ExitNodeStatus describes the current exit node.
+type ExitNodeStatus struct {
+	// ID is the exit node's ID.
+	ID tailcfg.StableNodeID
+
+	// Online is whether the exit node is alive.
+	Online bool
+
+	// TailscaleIPs are the exit node's IP addresses assigned to the node.
+	TailscaleIPs []netip.Prefix
+}
+
 func (s *Status) Peers() []key.NodePublic {
 	kk := make([]key.NodePublic, 0, len(s.Peer))
 	for k := range s.Peer {
@@ -70,35 +122,49 @@ func (s *Status) Peers() []key.NodePublic {
 }
 
 type PeerStatusLite struct {
+	// TxBytes/RxBytes is the total number of bytes transmitted to/received from this peer.
 	TxBytes, RxBytes int64
-	LastHandshake    time.Time
-	NodeKey          key.NodePublic
+	// LastHandshake is the last time a handshake succeeded with this peer.
+	// (Or we got key confirmation via the first data message,
+	// which is approximately the same thing.)
+	LastHandshake time.Time
+	// NodeKey is this peer's public node key.
+	NodeKey key.NodePublic
 }
 
 type PeerStatus struct {
-	ID        tailcfg.StableNodeID
-	PublicKey key.NodePublic
-	HostName  string // HostInfo's Hostname (not a DNS name or necessarily unique)
-	DNSName   string
-	OS        string // HostInfo.OS
-	UserID    tailcfg.UserID
+	ID           tailcfg.StableNodeID
+	PublicKey    key.NodePublic
+	HostName     string // HostInfo's Hostname (not a DNS name or necessarily unique)
+	DNSName      string
+	OS           string // HostInfo.OS
+	UserID       tailcfg.UserID
+	TailscaleIPs []netip.Addr // Tailscale IP(s) assigned to this node
 
-	TailAddrDeprecated string       `json:"TailAddr"` // Tailscale IP
-	TailscaleIPs       []netaddr.IP // Tailscale IP(s) assigned to this node
+	// Tags are the list of ACL tags applied to this node.
+	// See tailscale.com/tailcfg#Node.Tags for more information.
+	Tags *views.Slice[string] `json:",omitempty"`
+
+	// PrimaryRoutes are the routes this node is currently the primary
+	// subnet router for, as determined by the control plane. It does
+	// not include the IPs in TailscaleIPs.
+	PrimaryRoutes *views.IPPrefixSlice `json:",omitempty"`
 
 	// Endpoints:
 	Addrs   []string
 	CurAddr string // one of Addrs, or unique if roaming
 	Relay   string // DERP region
 
-	RxBytes       int64
-	TxBytes       int64
-	Created       time.Time // time registered with tailcontrol
-	LastWrite     time.Time // time last packet sent
-	LastSeen      time.Time // last seen to tailcontrol
-	LastHandshake time.Time // with local wireguard
-	KeepAlive     bool
-	ExitNode      bool // true if this is the currently selected exit node.
+	RxBytes        int64
+	TxBytes        int64
+	Created        time.Time // time registered with tailcontrol
+	LastWrite      time.Time // time last packet sent
+	LastSeen       time.Time // last seen to tailcontrol; only present if offline
+	LastHandshake  time.Time // with local wireguard
+	Online         bool      // whether node is connected to the control plane
+	KeepAlive      bool
+	ExitNode       bool // true if this is the currently selected exit node.
+	ExitNodeOption bool // true if this node can be an exit node (offered && approved)
 
 	// Active is whether the node was recently active. The
 	// definition is somewhat undefined but has historically and
@@ -109,6 +175,9 @@ type PeerStatus struct {
 
 	PeerAPIURL   []string
 	Capabilities []string `json:",omitempty"`
+
+	// SSH_HostKeys are the node's SSH host keys, if known.
+	SSH_HostKeys []string `json:"sshHostKeys,omitempty"`
 
 	// ShareeNode indicates this node exists in the netmap because
 	// it's owned by a shared-to user and that node might connect
@@ -186,7 +255,7 @@ func (sb *StatusBuilder) AddUser(id tailcfg.UserID, up tailcfg.UserProfile) {
 }
 
 // AddIP adds a Tailscale IP address to the status.
-func (sb *StatusBuilder) AddTailscaleIP(ip netaddr.IP) {
+func (sb *StatusBuilder) AddTailscaleIP(ip netip.Addr) {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
 	if sb.locked {
@@ -237,14 +306,20 @@ func (sb *StatusBuilder) AddPeer(peer key.NodePublic, st *PeerStatus) {
 	if v := st.UserID; v != 0 {
 		e.UserID = v
 	}
-	if v := st.TailAddrDeprecated; v != "" {
-		e.TailAddrDeprecated = v
-	}
 	if v := st.TailscaleIPs; v != nil {
 		e.TailscaleIPs = v
 	}
+	if v := st.PrimaryRoutes; v != nil && !v.IsNil() {
+		e.PrimaryRoutes = v
+	}
+	if v := st.Tags; v != nil && !v.IsNil() {
+		e.Tags = v
+	}
 	if v := st.OS; v != "" {
 		e.OS = st.OS
+	}
+	if v := st.SSH_HostKeys; v != nil {
+		e.SSH_HostKeys = v
 	}
 	if v := st.Addrs; v != nil {
 		e.Addrs = v
@@ -270,6 +345,9 @@ func (sb *StatusBuilder) AddPeer(peer key.NodePublic, st *PeerStatus) {
 	if v := st.LastWrite; !v.IsZero() {
 		e.LastWrite = v
 	}
+	if st.Online {
+		e.Online = true
+	}
 	if st.InNetworkMap {
 		e.InNetworkMap = true
 	}
@@ -285,6 +363,9 @@ func (sb *StatusBuilder) AddPeer(peer key.NodePublic, st *PeerStatus) {
 	if st.ExitNode {
 		e.ExitNode = true
 	}
+	if st.ExitNodeOption {
+		e.ExitNodeOption = true
+	}
 	if st.ShareeNode {
 		e.ShareeNode = true
 	}
@@ -298,11 +379,12 @@ type StatusUpdater interface {
 }
 
 func (st *Status) WriteHTML(w io.Writer) {
-	f := func(format string, args ...interface{}) { fmt.Fprintf(w, format, args...) }
+	f := func(format string, args ...any) { fmt.Fprintf(w, format, args...) }
 
 	f(`<!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tailscale State</title>
 <style>
 body { font-family: monospace; }
@@ -423,12 +505,16 @@ func osEmoji(os string) string {
 		return "👿"
 	case "openbsd":
 		return "🐡"
+	case "illumos":
+		return "☀️"
 	}
 	return "👽"
 }
 
 // PingResult contains response information for the "tailscale ping" subcommand,
 // saying how Tailscale can reach a Tailscale IP or subnet-routed IP.
+// See tailcfg.PingResponse for a related response that is sent back to control
+// for remote diagnostic pings.
 type PingResult struct {
 	IP       string // ping destination
 	NodeIP   string // Tailscale IP of node handling IP (different for subnet routers)
@@ -455,11 +541,31 @@ type PingResult struct {
 	// running the server on.
 	PeerAPIPort uint16 `json:",omitempty"`
 
+	// PeerAPIURL is the URL that was hit for pings of type "peerapi" (tailcfg.PingPeerAPI).
+	// It's of the form "http://ip:port" (or [ip]:port for IPv6).
+	PeerAPIURL string `json:",omitempty"`
+
 	// IsLocalIP is whether the ping request error is due to it being
 	// a ping to the local node.
 	IsLocalIP bool `json:",omitempty"`
 
 	// TODO(bradfitz): details like whether port mapping was used on either side? (Once supported)
+}
+
+func (pr *PingResult) ToPingResponse(pingType tailcfg.PingType) *tailcfg.PingResponse {
+	return &tailcfg.PingResponse{
+		Type:           pingType,
+		IP:             pr.IP,
+		NodeIP:         pr.NodeIP,
+		NodeName:       pr.NodeName,
+		Err:            pr.Err,
+		LatencySeconds: pr.LatencySeconds,
+		Endpoint:       pr.Endpoint,
+		DERPRegionID:   pr.DERPRegionID,
+		DERPRegionCode: pr.DERPRegionCode,
+		PeerAPIPort:    pr.PeerAPIPort,
+		IsLocalIP:      pr.IsLocalIP,
+	}
 }
 
 func SortPeers(peers []*PeerStatus) {
